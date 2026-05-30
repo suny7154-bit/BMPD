@@ -1,0 +1,324 @@
+HTML
+
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BMPD 정보 입력 시스템</title>
+    <style>
+        body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f5f5f5; }
+        .container { max-width: 650px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #333; margin-bottom: 25px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #444; }
+        
+        select, input[type="text"], input[type="date"], input[type="time"], textarea { 
+            width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; 
+            font-size: 15px; background-color: #fff; box-sizing: border-box; 
+        }
+        select:focus, input:focus, textarea:focus { border-color: #007bff; outline: none; box-shadow: 0 0 4px rgba(0,123,255,0.2); }
+        
+        .datetime-group { display: flex; gap: 10px; }
+        .datetime-group input { flex: 1; }
+        textarea { resize: vertical; font-family: inherit; }
+        
+        button { width: 100%; padding: 14px; background-color: #007bff; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 15px; }
+        button:hover { background-color: #0056b3; }
+        .status { margin-top: 15px; text-align: center; font-weight: bold; color: green; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>📋 설비 이상 정보 등록 시스템</h2>
+    
+    <div class="form-group">
+        <label for="operator">작업자 (이름)</label>
+        <input type="text" id="operator" placeholder="이름을 입력하세요">
+    </div>
+
+    <div class="form-group">
+        <label for="category">1. 구분</label>
+        <select id="category">
+            <option value="">-- 구분을 선택하세요 --</option>
+            <option value="BM">BM</option>
+            <option value="PD">PD</option>
+            <option value="PM">PM</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="line">1-2. 라인</label>
+        <select id="line">
+            <option value="">-- 라인을 선택하세요 --</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label for="process">2. 공정</label>
+        <select id="process" onchange="updateMachineOptions()">
+            <option value="">-- 공정을 선택하세요 --</option>
+            <option value="HPCD">HPCD</option>
+            <option value="Jig Formation">Jig Formation</option>
+            <option value="Degas">Degas</option>
+            <option value="CDC">CDC</option>
+            <option value="OCV">OCV</option>
+            <option value="EOL">EOL</option>
+        </select>
+    </div>
+    
+    <div class="form-group">
+        <label for="machine">3. Machine (세부 설비)</label>
+        <select id="machine" onchange="updateUnitOptions()" disabled>
+            <option value="">-- 공정을 먼저 선택하세요 --</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="unit">4. Unit</label>
+        <select id="unit" disabled>
+            <option value="">-- Machine을 먼저 선택하세요 --</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="assy">4-2. Assy'</label>
+        <input type="text" id="assy" placeholder="Assy' 정보를 입력하세요 (선택 사항)">
+    </div>
+
+    <div class="form-group">
+        <label>5. 발생 시각</label>
+        <div class="datetime-group">
+            <input type="date" id="occurrence-date">
+            <input type="time" id="occurrence-time">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>6. 확인 시각</label>
+        <div class="datetime-group">
+            <input type="date" id="check-date">
+            <input type="time" id="check-time">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>7. 조치 시각</label>
+        <div class="datetime-group">
+            <input type="date" id="action-date">
+            <input type="time" id="action-time">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="phenomenon">8. 현상</label>
+        <textarea id="phenomenon" rows="2" placeholder="현상을 자유롭게 입력하세요"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="cause">9. 원인</label>
+        <textarea id="cause" rows="2" placeholder="파악된 원인을 입력하세요"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="action-detail">11. 조치 내용</label>
+        <textarea id="action-detail" rows="2" placeholder="조치한 내용을 상세히 입력하세요"></textarea>
+    </div>
+    
+    <button onclick="processData()">🚀 등록 및 클립보드 복사</button>
+    
+    <div id="status" class="status"></div>
+</div>
+
+<script>
+    const GOOGLE_WEBAPP_URL = "https://script.google.com/macros/s/AKfycby3Agd7s0cWGmJCGmSadez5AhGYJHqcvXyCmOKqxoQuNCHESmoq9ujVB2hQIFJHg6Cr/exec";
+
+    // 1-2. 라인 루프 자동 생성 (1-1 ~ 6-4)
+    const lineSelect = document.getElementById('line');
+    for (let i = 1; i <= 6; i++) {
+        for (let j = 1; j <= 4; j++) {
+            const val = `${i}-${j}`;
+            const option = document.createElement('option');
+            option.value = val;
+            option.textContent = val;
+            lineSelect.appendChild(option);
+        }
+    }
+
+    const machineMapping = {
+        "HPCD": ["HPCD"],
+        "Jig Formation": ["Loader", "Jig"],
+        "Degas": ["Loader", "Degas", "Sealer", "Hot Press", "Unloader"],
+        "CDC": ["1 lane", "2 lane"],
+        "OCV": ["OCV"],
+        "EOL": ["Loader", "DSF", "Inspector", "Packer"]
+    };
+
+    const unitMapping = {
+        "HPCD": ["Tray Loader", "Cell Transfer", "Jig Press", "Current Check", "Tray unloader", "Common"],
+        "Loader": ["Tray Loader", "Empty Tray Unloader", "Empty Tray Loader", "Cell Loader", "Cell Unloader", "Common", "Tray Unloader"],
+        "Jig": ["Cell Transfer", "Jig Press", "Common"],
+        "Degas": ["Degas", "common"],
+        "Sealer": ["Cell Loader", "Gas Pocket Cutter", "Wing Press", "Main Sealer", "Weight&IR check", "Cell Unloader"],
+        "Hot Press": ["Cell Loader", "Hot Press", "Cell Unloader", "common"],
+        "Unloader": ["Cell Loader", "Tray Loader", "Tray Unloader", "common"],
+        "1 lane": ["1-1 ~ 1-8", "2-1 ~ 2-8", "6-1", "6-8"],
+        "2 lane": ["1-1 ~ 1-8", "2-1 ~ 2-8", "6-1", "6-8"],
+        "OCV": ["Box", "Common"],
+        "DSF": ["Cell Loader", "1- NG Ejector", "Wing Cutter", "Corner Cutter", "2- NG Ejector", "Wind Folding", "Double Side Folding", "Tape Attacher", "Common"],
+        "Inspector": ["Cell Loader", "1- Rework supply", "AC-IR&OCV", "IV&Thickness", "Weight Check", "IR", "Cell Conveyor", "NG Ejector", "Grade Printer", "2- Rework Supply", "Cell Unloader", "Common"],
+        "Packer": ["A- Cell Loader", "A-NG Ejector", "A-Manual Inspection", "B-Cell Loader", "B-NG Ejector", "B-Manual inspection", "Cell Unlaoder", "Pallet Loader", "Pallet Unloader", "Common"]
+    };
+
+    function updateMachineOptions() {
+        const processSelect = document.getElementById('process');
+        const machineSelect = document.getElementById('machine');
+        const unitSelect = document.getElementById('unit');
+        const selectedProcess = processSelect.value;
+        
+        if (!selectedProcess) {
+            machineSelect.innerHTML = '<option value="">-- 공정을 먼저 선택하세요 --</option>';
+            machineSelect.disabled = true;
+            unitSelect.innerHTML = '<option value="">-- Machine을 먼저 선택하세요 --</option>';
+            unitSelect.disabled = true;
+            return;
+        }
+        
+        const machines = machineMapping[selectedProcess] || [];
+        machineSelect.innerHTML = '<option value="">-- Machine을 선택하세요 --</option>';
+        machines.forEach(mac => {
+            const option = document.createElement('option');
+            option.value = mac;
+            option.textContent = mac;
+            machineSelect.appendChild(option);
+        });
+        
+        machineSelect.disabled = false;
+        unitSelect.innerHTML = '<option value="">-- Machine을 먼저 선택하세요 --</option>';
+        unitSelect.disabled = true;
+    }
+
+    function updateUnitOptions() {
+        const machineSelect = document.getElementById('machine');
+        const unitSelect = document.getElementById('unit');
+        const selectedMachine = machineSelect.value;
+
+        if (!selectedMachine) {
+            unitSelect.innerHTML = '<option value="">-- Machine을 먼저 선택하세요 --</option>';
+            unitSelect.disabled = true;
+            return;
+        }
+
+        const units = unitMapping[selectedMachine] || [];
+        unitSelect.innerHTML = '<option value="">-- Unit을 선택하세요 --</option>';
+        units.forEach(un => {
+            const option = document.createElement('option');
+            option.value = un;
+            option.textContent = un;
+            unitSelect.appendChild(option);
+        });
+
+        unitSelect.disabled = false;
+    }
+
+    async function processData() {
+        const statusDiv = document.getElementById('status');
+        
+        const operator = document.getElementById('operator').value;
+        const category = document.getElementById('category').value;
+        const line = document.getElementById('line').value;
+        const process = document.getElementById('process').value;
+        const machine = document.getElementById('machine').value;
+        const unit = document.getElementById('unit').value;
+        const assy = document.getElementById('assy').value; // Assy' 값 취득
+        
+        const occDate = document.getElementById('occurrence-date').value;
+        const occTime = document.getElementById('occurrence-time').value;
+        const chkDate = document.getElementById('check-date').value;
+        const chkTime = document.getElementById('check-time').value;
+        const actDate = document.getElementById('action-date').value;
+        const actTime = document.getElementById('action-time').value;
+        
+        const phenomenon = document.getElementById('phenomenon').value;
+        const cause = document.getElementById('cause').value;
+        const actionDetail = document.getElementById('action-detail').value;
+
+        if (!operator || !category || !line || !process || !machine || !unit || !occDate || !occTime || !phenomenon) {
+            alert("작업자명, 구분, 라인, 공정, Machine, Unit, 발생 시각 및 현상은 필수 항목입니다!");
+            return;
+        }
+
+        statusDiv.style.color = "orange";
+        statusDiv.innerText = "처리 중...";
+
+        const occurrenceStr = `${occDate} ${occTime}`;
+        const checkStr = (chkDate && chkTime) ? `${chkDate} ${chkTime}` : "미확인";
+        const actionStr = (actDate && actTime) ? `${actDate} ${actTime}` : "미조치";
+        const assyStr = assy ? assy : "공란";
+        const causeStr = cause ? cause : "미파악";
+        const actionDetailStr = actionDetail ? actionDetail : "미조치";
+
+        // 1. 카카오톡 메신저 공유용 텍스트 빌드 (Assy' 반영)
+        const clipboardText = `[설비 이상 알림]\n• 작업자: ${operator}\n• 구분: ${category}\n• 라인: ${line}\n• 공정: ${process}\n• 설비(Machine): ${machine}\n• Unit: ${unit}\n• Assy': ${assyStr}\n• 발생시각: ${occurrenceStr}\n• 확인시각: ${checkStr}\n• 조치시각: ${actionStr}\n• 현상: ${phenomenon}\n• 원인: ${causeStr}\n• 조치내용: ${actionDetailStr}`;
+
+        try {
+            await navigator.clipboard.writeText(clipboardText);
+        } catch (err) {
+            console.error("클립보드 복사 실패: ", err);
+        }
+
+        // 2. 백엔드(구글 스크립트 API) 전송용 구조체 패키징 (Assy' 추가)
+        const payload = {
+            operator: operator,
+            category: category,
+            line: line,
+            process: process,
+            machine: machine,
+            unit: unit,
+            assy: assyStr,
+            occurrence: occurrenceStr,
+            check: checkStr,
+            actionTime: actionStr,
+            phenomenon: phenomenon,
+            cause: causeStr,
+            actionDetail: actionDetailStr
+        };
+
+        try {
+            await fetch(GOOGLE_WEBAPP_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            statusDiv.style.color = "green";
+            statusDiv.innerText = "✔ 구글 시트 등록 및 클립보드 복사 완료!";
+            
+            document.getElementById('operator').value = '';
+            document.getElementById('category').value = '';
+            document.getElementById('line').value = '';
+            document.getElementById('process').value = '';
+            document.getElementById('assy').value = '';
+            document.getElementById('phenomenon').value = '';
+            document.getElementById('cause').value = '';
+            document.getElementById('action-detail').value = '';
+            document.getElementById('occurrence-date').value = '';
+            document.getElementById('occurrence-time').value = '';
+            document.getElementById('check-date').value = '';
+            document.getElementById('check-time').value = '';
+            document.getElementById('action-date').value = '';
+            document.getElementById('action-time').value = '';
+            updateMachineOptions();
+
+        } catch (error) {
+            console.error("오류 발생:", error);
+            statusDiv.style.color = "red";
+            statusDiv.innerText = "❌ 전송 실패. 네트워크 상태를 확인하세요.";
+        }
+    }
+</script>
+</body>
+</html>
