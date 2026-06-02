@@ -1,16 +1,12 @@
-HTML
-
-
-<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BMPD 정보 입력 시스템</title>
+    <title>BMPD 정보 입력 시스템 (Equipment Anomaly Registration System)</title>
     <style>
         body { font-family: 'Malgun Gothic', sans-serif; padding: 20px; background-color: #f5f5f5; }
         .container { max-width: 650px; margin: auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h2 { text-align: center; color: #333; margin-bottom: 25px; }
+        h2 { text-align: center; color: #333; margin-bottom: 25px; font-size: 22px; }
         .form-group { margin-bottom: 20px; }
         label { display: block; margin-bottom: 8px; font-weight: bold; color: #444; }
         
@@ -32,17 +28,17 @@ HTML
 <body>
 
 <div class="container">
-    <h2>📋 설비 이상 정보 등록 시스템</h2>
+    <h2>📋 설비 이상 정보 등록 시스템<br><span style="font-size: 16px; color: #666;">(Equipment Anomaly Registration System)</span></h2>
     
     <div class="form-group">
-        <label for="operator">작업자 (이름)</label>
-        <input type="text" id="operator" placeholder="이름을 입력하세요">
+        <label for="operator">작업자 (Operator Name)</label>
+        <input type="text" id="operator" placeholder="이름을 입력하세요 (Enter name)">
     </div>
 
     <div class="form-group">
-        <label for="category">1. 구분</label>
+        <label for="category">1. 구분 (Category)</label>
         <select id="category">
-            <option value="">-- 구분을 선택하세요 --</option>
+            <option value="">-- 구분을 선택하세요 (Select Category) --</option>
             <option value="BM">BM</option>
             <option value="PD">PD</option>
             <option value="PM">PM</option>
@@ -50,16 +46,16 @@ HTML
     </div>
 
     <div class="form-group">
-        <label for="line">1-2. 라인</label>
+        <label for="line">1-2. 라인 (Line)</label>
         <select id="line">
-            <option value="">-- 라인을 선택하세요 --</option>
+            <option value="">-- 라인을 선택하세요 (Select Line) --</option>
         </select>
     </div>
     
     <div class="form-group">
-        <label for="process">2. 공정</label>
+        <label for="process">2. 공정 (Process)</label>
         <select id="process" onchange="updateMachineOptions()">
-            <option value="">-- 공정을 선택하세요 --</option>
+            <option value="">-- 공정을 선택하세요 (Select Process) --</option>
             <option value="HPCD">HPCD</option>
             <option value="Jig Formation">Jig Formation</option>
             <option value="Degas">Degas</option>
@@ -70,26 +66,26 @@ HTML
     </div>
     
     <div class="form-group">
-        <label for="machine">3. Machine (세부 설비)</label>
+        <label for="machine">3. Machine (세부 설비 / Detailed Equipment)</label>
         <select id="machine" onchange="updateUnitOptions()" disabled>
-            <option value="">-- 공정을 먼저 선택하세요 --</option>
+            <option value="">-- 공정을 먼저 선택하세요 (Select Process First) --</option>
         </select>
     </div>
 
     <div class="form-group">
-        <label for="unit">4. Unit</label>
+        <label for="unit">4. Unit (세부 유닛)</label>
         <select id="unit" disabled>
-            <option value="">-- Machine을 먼저 선택하세요 --</option>
+            <option value="">-- Machine을 먼저 선택하세요 (Select Machine First) --</option>
         </select>
     </div>
 
     <div class="form-group">
-        <label for="assy">4-2. Assy'</label>
-        <input type="text" id="assy" placeholder="Assy' 정보를 입력하세요 (선택 사항)">
+        <label for="assy">4-2. Assy' (아세이 정보)</label>
+        <input type="text" id="assy" placeholder="Assy' 정보를 입력하세요 (Enter Assy info - Optional)">
     </div>
 
     <div class="form-group">
-        <label>5. 발생 시각</label>
+        <label>5. 발생 시각 (Occurrence Time)</label>
         <div class="datetime-group">
             <input type="date" id="occurrence-date">
             <input type="time" id="occurrence-time">
@@ -97,7 +93,7 @@ HTML
     </div>
 
     <div class="form-group">
-        <label>6. 확인 시각</label>
+        <label>6. 확인 시각 (Check Time)</label>
         <div class="datetime-group">
             <input type="date" id="check-date">
             <input type="time" id="check-time">
@@ -105,7 +101,7 @@ HTML
     </div>
 
     <div class="form-group">
-        <label>7. 조치 시각</label>
+        <label>7. 조치 시각 (Action Time)</label>
         <div class="datetime-group">
             <input type="date" id="action-date">
             <input type="time" id="action-time">
@@ -113,27 +109,28 @@ HTML
     </div>
 
     <div class="form-group">
-        <label for="phenomenon">8. 현상</label>
-        <textarea id="phenomenon" rows="2" placeholder="현상을 자유롭게 입력하세요"></textarea>
+        <label for="phenomenon">8. 현상 (Phenomenon)</label>
+        <textarea id="phenomenon" rows="2" placeholder="현상을 자유롭게 입력하세요 (Describe the phenomenon)"></textarea>
     </div>
 
     <div class="form-group">
-        <label for="cause">9. 원인</label>
-        <textarea id="cause" rows="2" placeholder="파악된 원인을 입력하세요"></textarea>
+        <label for="cause">9. 원인 (Cause)</label>
+        <textarea id="cause" rows="2" placeholder="파악된 원인을 입력하세요 (Describe the cause)"></textarea>
     </div>
 
     <div class="form-group">
-        <label for="action-detail">11. 조치 내용</label>
-        <textarea id="action-detail" rows="2" placeholder="조치한 내용을 상세히 입력하세요"></textarea>
+        <label for="action-detail">11. 조치 내용 (Action Detail)</label>
+        <textarea id="action-detail" rows="2" placeholder="조치한 내용을 상세히 입력하세요 (Describe the action taken in detail)"></textarea>
     </div>
     
-    <button onclick="processData()">🚀 등록 및 클립보드 복사</button>
+    <button onclick="processData()">🚀 등록 및 클립보드 복사 (Submit & Copy to Clipboard)</button>
     
     <div id="status" class="status"></div>
 </div>
 
 <script>
-    const GOOGLE_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwiQiWwDyRAmy4RrVFw4BdVNwoAu3PYAS6pH0eEpMMWt_mKY50Q0naFXwr07F5dKYM1/exec";
+    // ⚠️ 구글 앱스크립트 배포 관리에서 '새 버전' 생성 후 발급받은 URL 주소를 꼭 하단에 바인딩해 주세요!
+    const GOOGLE_WEBAPP_URL = "https://script.google.com/macros/s/AKfycbwTziskNqV1SEfajnADVCEAZ1ZM8UMEsh-gXMCBRTcnKaU23sr_T9WDxTsmNq6AQYzk/exec";
 
     // 1-2. 라인 루프 자동 생성 (1-1 ~ 6-4)
     const lineSelect = document.getElementById('line');
@@ -144,6 +141,14 @@ HTML
             option.value = val;
             option.textContent = val;
             lineSelect.appendChild(option);
+        }
+    }
+
+    // 1 lane, 2 lane용 48개 대역 자동 생성 루프 (1-1 ~ 6-8 연산 배열)
+    const laneUnits = [];
+    for (let i = 1; i <= 6; i++) {
+        for (let j = 1; j <= 8; j++) {
+            laneUnits.push(`${i}-${j}`);
         }
     }
 
@@ -164,8 +169,8 @@ HTML
         "Sealer": ["Cell Loader", "Gas Pocket Cutter", "Wing Press", "Main Sealer", "Weight&IR check", "Cell Unloader"],
         "Hot Press": ["Cell Loader", "Hot Press", "Cell Unloader", "common"],
         "Unloader": ["Cell Loader", "Tray Loader", "Tray Unloader", "common"],
-        "1 lane": ["1-1 ~ 1-8", "2-1 ~ 2-8", "6-1", "6-8"],
-        "2 lane": ["1-1 ~ 1-8", "2-1 ~ 2-8", "6-1", "6-8"],
+        "1 lane": laneUnits, // 1-1부터 6-8까지 총 48개 자동 바인딩
+        "2 lane": laneUnits, // 1-1부터 6-8까지 총 48개 자동 바인딩
         "OCV": ["Box", "Common"],
         "DSF": ["Cell Loader", "1- NG Ejector", "Wing Cutter", "Corner Cutter", "2- NG Ejector", "Wind Folding", "Double Side Folding", "Tape Attacher", "Common"],
         "Inspector": ["Cell Loader", "1- Rework supply", "AC-IR&OCV", "IV&Thickness", "Weight Check", "IR", "Cell Conveyor", "NG Ejector", "Grade Printer", "2- Rework Supply", "Cell Unloader", "Common"],
@@ -179,15 +184,15 @@ HTML
         const selectedProcess = processSelect.value;
         
         if (!selectedProcess) {
-            machineSelect.innerHTML = '<option value="">-- 공정을 먼저 선택하세요 --</option>';
+            machineSelect.innerHTML = '<option value="">-- 공정을 먼저 선택하세요 (Select Process First) --</option>';
             machineSelect.disabled = true;
-            unitSelect.innerHTML = '<option value="">-- Machine을 먼저 선택하세요 --</option>';
+            unitSelect.innerHTML = '<option value="">-- Machine을 먼저 선택하세요 (Select Machine First) --</option>';
             unitSelect.disabled = true;
             return;
         }
         
         const machines = machineMapping[selectedProcess] || [];
-        machineSelect.innerHTML = '<option value="">-- Machine을 선택하세요 --</option>';
+        machineSelect.innerHTML = '<option value="">-- Machine을 선택하세요 (Select Machine) --</option>';
         machines.forEach(mac => {
             const option = document.createElement('option');
             option.value = mac;
@@ -196,7 +201,7 @@ HTML
         });
         
         machineSelect.disabled = false;
-        unitSelect.innerHTML = '<option value="">-- Machine을 먼저 선택하세요 --</option>';
+        unitSelect.innerHTML = '<option value="">-- Machine을 먼저 선택하세요 (Select Machine First) --</option>';
         unitSelect.disabled = true;
     }
 
@@ -206,13 +211,13 @@ HTML
         const selectedMachine = machineSelect.value;
 
         if (!selectedMachine) {
-            unitSelect.innerHTML = '<option value="">-- Machine을 먼저 선택하세요 --</option>';
+            unitSelect.innerHTML = '<option value="">-- Machine을 먼저 선택하세요 (Select Machine First) --</option>';
             unitSelect.disabled = true;
             return;
         }
 
         const units = unitMapping[selectedMachine] || [];
-        unitSelect.innerHTML = '<option value="">-- Unit을 선택하세요 --</option>';
+        unitSelect.innerHTML = '<option value="">-- Unit을 선택하세요 (Select Unit) --</option>';
         units.forEach(un => {
             const option = document.createElement('option');
             option.value = un;
@@ -232,7 +237,7 @@ HTML
         const process = document.getElementById('process').value;
         const machine = document.getElementById('machine').value;
         const unit = document.getElementById('unit').value;
-        const assy = document.getElementById('assy').value; // Assy' 값 취득
+        const assy = document.getElementById('assy').value; 
         
         const occDate = document.getElementById('occurrence-date').value;
         const occTime = document.getElementById('occurrence-time').value;
@@ -246,12 +251,12 @@ HTML
         const actionDetail = document.getElementById('action-detail').value;
 
         if (!operator || !category || !line || !process || !machine || !unit || !occDate || !occTime || !phenomenon) {
-            alert("작업자명, 구분, 라인, 공정, Machine, Unit, 발생 시각 및 현상은 필수 항목입니다!");
+            alert("작업자명, 구분, 라인, 공정, Machine, Unit, 발생 시각 및 현상은 필수 항목입니다!\n(Operator, Category, Line, Process, Machine, Unit, Occurrence Time, and Phenomenon are required!)");
             return;
         }
 
         statusDiv.style.color = "orange";
-        statusDiv.innerText = "처리 중...";
+        statusDiv.innerText = "처리 중... (Processing...)";
 
         const occurrenceStr = `${occDate} ${occTime}`;
         const checkStr = (chkDate && chkTime) ? `${chkDate} ${chkTime}` : "미확인";
@@ -260,7 +265,7 @@ HTML
         const causeStr = cause ? cause : "미파악";
         const actionDetailStr = actionDetail ? actionDetail : "미조치";
 
-        // 1. 카카오톡 메신저 공유용 텍스트 빌드 (Assy' 반영)
+        // 카카오톡 공유 포맷 텍스트 빌드
         const clipboardText = `[설비 이상 알림]\n• 작업자: ${operator}\n• 구분: ${category}\n• 라인: ${line}\n• 공정: ${process}\n• 설비(Machine): ${machine}\n• Unit: ${unit}\n• Assy': ${assyStr}\n• 발생시각: ${occurrenceStr}\n• 확인시각: ${checkStr}\n• 조치시각: ${actionStr}\n• 현상: ${phenomenon}\n• 원인: ${causeStr}\n• 조치내용: ${actionDetailStr}`;
 
         try {
@@ -269,7 +274,7 @@ HTML
             console.error("클립보드 복사 실패: ", err);
         }
 
-        // 2. 백엔드(구글 스크립트 API) 전송용 구조체 패키징 (Assy' 추가)
+        // 백엔드 데이터 전송용 payload 패키징
         const payload = {
             operator: operator,
             category: category,
@@ -295,8 +300,9 @@ HTML
             });
 
             statusDiv.style.color = "green";
-            statusDiv.innerText = "✔ 구글 시트 등록 및 클립보드 복사 완료!";
+            statusDiv.innerText = "✔ 구글 시트 등록 및 클립보드 복사 완료! (Data Submitted & Copied!)";
             
+            // 입력창 초기화
             document.getElementById('operator').value = '';
             document.getElementById('category').value = '';
             document.getElementById('line').value = '';
@@ -316,7 +322,7 @@ HTML
         } catch (error) {
             console.error("오류 발생:", error);
             statusDiv.style.color = "red";
-            statusDiv.innerText = "❌ 전송 실패. 네트워크 상태를 확인하세요.";
+            statusDiv.innerText = "❌ 전송 실패. 네트워크 상태를 확인하세요. (Submission Failed.)";
         }
     }
 </script>
