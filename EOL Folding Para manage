@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EOL Folding Parameter 관리</title>
+  <style>
+    body {
+      font-family: 'Malgun Gothic', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+      color: #333;
+    }
+    .container {
+      max-width: 550px;
+      margin: 40px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #4a4a4a;
+    }
+    .header h1 {
+      font-size: 24px;
+      color: #2c3e50;
+      margin: 0 0 5px 0;
+    }
+    .header p {
+      font-size: 14px;
+      color: #7f8c8d;
+      margin: 0;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .sub-section {
+      background-color: #fcfcfc;
+      border: 1px dashed #cbd5e1;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none; /* 초기에는 숨김 */
+    }
+    .sub-section h3 {
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 16px;
+      color: #475569;
+      border-left: 4px solid #4a4a4a;
+      padding-left: 8px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #34495e;
+    }
+    select, input[type="text"], textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+      box-sizing: border-box;
+      background-color: #fff;
+      font-family: inherit;
+    }
+    select:focus, input:focus, textarea:focus {
+      border-color: #3498db;
+      outline: none;
+      box-shadow: 0 0 4px rgba(52,152,219,0.3);
+    }
+    textarea {
+      height: 80px;
+      resize: vertical;
+    }
+    .button {
+      width: 100%;
+      padding: 14px;
+      background-color: #28a745;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 15px;
+      transition: background-color 0.2s;
+    }
+    .button:hover {
+      background-color: #218838;
+    }
+    .status-msg {
+      margin-top: 15px;
+      text-align: center;
+      font-weight: bold;
+      color: #4a4a4a;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="header">
+    <h1>📋 EOL Folding Parameter 관리</h1>
+    <p>Folding 공정 파라미터 변경 이력 시스템</p>
+  </div>
+
+  <div class="form-group">
+    <label for="line">1. 라인 (Line)</label>
+    <select id="line">
+      <option value="">-- 라인을 선택하세요 --</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="unit">2. 유닛 (Unit)</label>
+    <select id="unit">
+      <option value="">-- 유닛을 선택하세요 --</option>
+      <option value="Heat Press2(90 Folding 전)">Heat Press2(90 Folding 전)</option>
+      <option value="90 Folding">90 Folding</option>
+      <option value="180 Folding">180 Folding</option>
+      <option value="Heat Press3A(270 Folding 전)">Heat Press3A(270 Folding 전)</option>
+      <option value="Heat Press3B(270 Folding 전)">Heat Press3B(270 Folding 전)</option>
+      <option value="270 Folding A">270 Folding A</option>
+      <option value="270 Folding B">270 Folding B</option>
+      <option value="Side Press">Side Press</option>
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label for="worker">3. 변경자 (Worker)</label>
+    <input type="text" id="worker" placeholder="이름을 입력하세요" />
+  </div>
+
+  <div class="form-group">
+    <label for="contentType">4. 변경 내용 (Content Type)</label>
+    <select id="contentType" onchange="toggleSubFields()">
+      <option value="">-- 변경 내용 유형을 선택하세요 --</option>
+      <option value="Temperature">Temperature</option>
+      <option value="Servo Parameter">Servo Parameter</option>
+      <option value="Normal Parameter">Normal Parameter</option>
+    </select>
+  </div>
+
+  <div id="sec-temperature" class="sub-section">
+    <h3>🌡️ Temperature 세부 정보</h3>
+    <div class="form-group">
+      <label for="temp-val">변경내용1 - 온도</label>
+      <input type="text" id="temp-val" placeholder="설정 온도를 입력하세요" />
+    </div>
+    <div class="form-group">
+      <label for="temp-reason">변경내용2 - 변경 사유</label>
+      <textarea id="temp-reason" placeholder="변경 사유를 입력하세요"></textarea>
+    </div>
+  </div>
+
+  <div id="sec-servo" class="sub-section">
+    <h3>⚙️ Servo Parameter 세부 정보</h3>
+    <div class="form-group">
+      <label for="servo-type">변경내용 1 - 속도/위치 구분</label>
+      <select id="servo-type">
+        <option value="">-- 선택 --</option>
+        <option value="속도">속도</option>
+        <option value="위치">위치</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="servo-axis">변경내용 2 - 축 정보(axis)</label>
+      <select id="servo-axis">
+        <option value="">-- 선택 --</option>
+        <option value="X">X</option>
+        <option value="Y">Y</option>
+        <option value="Z">Z</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="servo-part">변경내용 3 - Part 정보</label>
+      <select id="servo-part">
+        <option value="">-- 선택 --</option>
+        <option value="상도">상도</option>
+        <option value="하도">하도</option>
+        <option value="펀치">펀치</option>
+        <option value="유닛 전체(얼라인)">유닛 전체(얼라인)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="servo-val">변경내용 4 - 변경 값</label>
+      <input type="text" id="servo-val" placeholder="변경 수치를 입력하세요" />
+    </div>
+    <div class="form-group">
+      <label for="servo-reason">변경내용 5 - 변경 사유</label>
+      <textarea id="servo-reason" placeholder="변경 사유를 입력하세요"></textarea>
+    </div>
+  </div>
+
+  <div id="sec-normal" class="sub-section">
+    <h3>📄 Normal Parameter 세부 정보</h3>
+    <div class="form-group">
+      <label for="normal-type">변경내용1 - 타입</label>
+      <select id="normal-type">
+        <option value="">-- 선택 --</option>
+        <option value="펀치 유지 시간">펀치 유지 시간</option>
+        <option value="press 유지시간">press 유지시간</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label for="normal-val">변경내용2 - 변경 값</label>
+      <input type="text" id="normal-val" placeholder="변경 값을 입력하세요" />
+    </div>
+    <div class="form-group">
+      <label for="normal-reason">변경내용3 - 변경 사유</label>
+      <textarea id="normal-reason" placeholder="변경 사유를 입력하세요"></textarea>
+    </div>
+  </div>
+
+  <button class="button" onclick="submitData()">업로드 + 자동 클립보드 복사</button>
+  <div id="status" class="status-msg"></div>
+</div>
+
+<script>
+  // ✅ 새로 제공해주신 앱스크립트 주소로 교체 적용되었습니다.
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxRZWg48i9vOWYuWjJo3o9fu_-vn6XmK9EyTBSr0nkIXK7_Bl4GyExtys4uES4LSSBq/exec";
+
+  // 페이지 로드 시 라인 옵션(1-1 ~ 6-2) 자동 생성
+  window.addEventListener('load', () => {
+    const lineSelect = document.getElementById('line');
+    for (let i = 1; i <= 6; i++) {
+      for (let j = 1; j <= 2; j++) {
+        const val = `${i}-${j}`;
+        const option = document.createElement('option');
+        option.value = val;
+        option.textContent = val;
+        lineSelect.appendChild(option);
+      }
+    }
+  });
+
+  // 4번 변경 내용 선택에 따른 서브 세부 레이아웃 토글 제어
+  function toggleSubFields() {
+    const contentType = document.getElementById('contentType').value;
+    
+    // 일단 모든 서브 섹션 숨기기
+    document.getElementById('sec-temperature').style.display = 'none';
+    document.getElementById('sec-servo').style.display = 'none';
+    document.getElementById('sec-normal').style.display = 'none';
+
+    // 선택항목별 활성화
+    if (contentType === 'Temperature') {
+      document.getElementById('sec-temperature').style.display = 'block';
+    } else if (contentType === 'Servo Parameter') {
+      document.getElementById('sec-servo').style.display = 'block';
+    } else if (contentType === 'Normal Parameter') {
+      document.getElementById('sec-normal').style.display = 'block';
+    }
+  }
+
+  // 데이터 임베딩 전송 및 클립보드 가공 처리 함수
+  async function submitData() {
+    const statusDiv = document.getElementById('status');
+    
+    // 기본 대항목 필드 값 수집
+    const line = document.getElementById('line').value;
+    const unit = document.getElementById('unit').value;
+    const worker = document.getElementById('worker').value;
+    const contentType = document.getElementById('contentType').value;
+
+    if (!line || !unit || !worker || !contentType) {
+      alert("공통 필수 항목(라인, 유닛, 변경자, 변경 내용)을 모두 선택/입력해주세요.");
+      return;
+    }
+
+    // 전송 패키지 세팅용 가변 내부 변수 정의
+    let sub1 = "", sub2 = "", sub3 = "", sub4 = "", sub5 = "";
+    let clipboardText = `[EOL Folding Parameter 변경 공유]\n• 라인: ${line}\n• 유닛: ${unit}\n• 변경자: ${worker}\n• 변경유형: ${contentType}\n`;
+
+    // 서브 섹션 내부 분기 및 데이터 조합
+    if (contentType === 'Temperature') {
+      sub1 = document.getElementById('temp-val').value;
+      sub2 = document.getElementById('temp-reason').value;
+      if(!sub1 || !sub2) { alert("Temperature 세부 항목을 입력해주세요."); return; }
+      
+      clipboardText += `• 온도: ${sub1}\n• 변경 사유: ${sub2}`;
+    } 
+    else if (contentType === 'Servo Parameter') {
+      sub1 = document.getElementById('servo-type').value;
+      sub2 = document.getElementById('servo-axis').value;
+      sub3 = document.getElementById('servo-part').value;
+      sub4 = document.getElementById('servo-val').value;
+      sub5 = document.getElementById('servo-reason').value;
+      if(!sub1 || !sub2 || !sub3 || !sub4 || !sub5) { alert("Servo Parameter 세부 항목을 모두 완성해주세요."); return; }
+      
+      clipboardText += `• 속도/위치: ${sub1}\n• 축(Axis): ${sub2}\n• Part 정보: ${sub3}\n• 변경 값: ${sub4}\n• 변경 사유: ${sub5}`;
+    } 
+    else if (contentType === 'Normal Parameter') {
+      sub1 = document.getElementById('normal-type').value;
+      sub2 = document.getElementById('normal-val').value;
+      sub3 = document.getElementById('normal-reason').value;
+      if(!sub1 || !sub2 || !sub3) { alert("Normal Parameter 세부 항목을 모두 입력해주세요."); return; }
+      
+      clipboardText += `• 타입: ${sub1}\n• 변경 값: ${sub2}\n• 변경 사유: ${sub3}`;
+    }
+
+    statusDiv.style.color = "orange";
+    statusDiv.innerText = "⏳ 데이터 전송 중...";
+
+    // 백엔드 데이터 Payload 정의 (Apps Script에서 유연하게 재배치됨)
+    const payload = {
+      line: line,
+      unit: unit,
+      worker: worker,
+      contentType: contentType,
+      sub1: sub1,
+      sub2: sub2,
+      sub3: sub3,
+      sub4: sub4,
+      sub5: sub5
+    };
+
+    try {
+      // CORS 및 보안 제약을 우회하기 위해 text/plain 컨텐츠 구조로 POST 전송
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+
+      // 클립보드 강제 자동 복사 수행
+      await navigator.clipboard.writeText(clipboardText);
+
+      statusDiv.style.color = "green";
+      statusDiv.innerText = "✅ 구글 시트 업로드 및 클립보드 복사 완료! 카톡방에 붙여넣기 하세요.";
+
+      // 입력 데이터 리셋 초기화
+      document.getElementById('worker').value = '';
+      document.getElementById('contentType').value = '';
+      toggleSubFields(); // 서브 레이아웃 닫기
+
+    } catch (error) {
+      console.error(error);
+      statusDiv.style.color = "red";
+      statusDiv.innerText = "❌ 업로드 실패. 네트워크 상태나 스크립트 배포 주소를 확인하세요.";
+    }
+  }
+</script>
+</body>
+</html>
