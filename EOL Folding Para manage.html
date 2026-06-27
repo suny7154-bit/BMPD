@@ -70,6 +70,31 @@
     .form-row .form-group {
       margin-bottom: 0;
     }
+    
+    /* 체크박스 전용 스타일 */
+    .checkbox-group {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      padding: 12px 15px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+    .checkbox-group label {
+      display: inline;
+      margin-bottom: 0;
+      cursor: pointer;
+      font-size: 14px;
+      color: #1e293b;
+    }
+
     .sub-section {
       background-color: #fcfcfc;
       border: 1px dashed #cbd5e1;
@@ -210,7 +235,7 @@
     }
     
     th:nth-child(1) { width: 55px; }  
-    th:nth-child(2) { width: 140px; } 
+    th:nth-child(2) { width: 155px; } 
     th:nth-child(3) { width: 140px; } 
     th:nth-child(4) { width: 85px; }  
     th:nth-child(5) { width: 65px; }  
@@ -254,9 +279,17 @@
         <option value="Heat Press3B(270 Folding 전)">Heat Press3B(270 Folding 전)</option>
         <option value="270 Folding A">270 Folding A</option>
         <option value="270 Folding B">270 Folding B</option>
-        <option value="Side Press">Side Press</option>
-        <option value="Taping Unit">Taping Unit</option>
+        <option value="Side Press A">Side Press A</option>
+        <option value="Side Press B">Side Press B</option>
+        <option value="Taping Unit A">Taping Unit A</option>
+        <option value="Taping Unit B">Taping Unit B</option>
       </select>
+    </div>
+
+    <!-- 🛠️ A/B 공통 적용 체크박스 추가 -->
+    <div class="checkbox-group" id="common-apply-wrapper">
+      <input type="checkbox" id="common-apply" />
+      <label for="common-apply"><strong>🔄 A/B 공통 적용</strong> (선택 시 반대편 유닛도 행 자동 생성 및 동시 업로드)</label>
     </div>
 
     <div class="form-row">
@@ -392,8 +425,10 @@
           <option value="Heat Press3B(270 Folding 전)">Heat Press3B(270 Folding 전)</option>
           <option value="270 Folding A">270 Folding A</option>
           <option value="270 Folding B">270 Folding B</option>
-          <option value="Side Press">Side Press</option>
-          <option value="Taping Unit">Taping Unit</option>
+          <option value="Side Press A">Side Press A</option>
+          <option value="Side Press B">Side Press B</option>
+          <option value="Taping Unit A">Taping Unit A</option>
+          <option value="Taping Unit B">Taping Unit B</option>
         </select>
       </div>
       <div class="form-group">
@@ -438,7 +473,7 @@
 </div>
 
 <script>
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFi6dUEwcKAGrCR6fcrFi8aO1U38kIJaVX77gGBwy7ffbEA8heMPiNcbYWZptH58KR/exec";
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzoxSA4Ik0cSWVIEV1z-BSboE1ws_XmYSv_HSWvor5USZtMlZ620cwE-iOmIqhZEPBm/exec";
 
   let cachedHistoryData = []; 
 
@@ -477,6 +512,7 @@
   window.addEventListener('load', () => {
     initLineOptions();
     updatePartOptions(defaultParts);
+    checkCommonApplyVisibility(); // 초기 체크박스 가시성 검사
   });
 
   function switchMode(mode) {
@@ -533,20 +569,15 @@
       return;
     }
 
-    // 🛠️ 필터 로직 전면 수정: 구글 스프레드시트 로우(배열) 매핑을 정확하게 인덱스로 확인합니다.
     let filteredData = cachedHistoryData.filter(row => {
-      // 스프레드시트 열 기준: row[0]=타임스탬프, row[1]=라인, row[2]=유닛, row[3]=변경자, row[4]=유형
       if (row.length < 3) return false;
       
-      // 1. 라인 매칭 확인 (문자열 강제 변환 후 비교)
       const lineVal = row[1] ? String(row[1]).trim() : '';
       const matchLine = filterLine ? (lineVal === filterLine) : true;
       
-      // 2. 유닛 매칭 확인
       const unitVal = row[2] ? String(row[2]).trim() : '';
       const matchUnit = filterUnit ? (unitVal === filterUnit) : true;
       
-      // 3. 서보 파라미터일 경우 축(Axis) 및 파트 인덱스 추출
       const contentType = row[4] || '';
       const axisVal = contentType === 'Servo Parameter' ? (row[6] ? String(row[6]).trim() : '') : '';
       const partVal = contentType === 'Servo Parameter' ? (row[5] || '') : (row[5] || '');
@@ -610,12 +641,50 @@
     });
   }
 
+  // 🛠️ 유닛 규칙성 검증 및 체크박스 가시성 컨트롤 제어 함수
+  function checkCommonApplyVisibility() {
+    const unit = document.getElementById('unit').value;
+    const wrapper = document.getElementById('common-apply-wrapper');
+    const chk = document.getElementById('common-apply');
+
+    // 쌍이 존재하는 유닛들만 체크박스 활성화
+    const pairableUnits = [
+      "Heat Press3A(270 Folding 전)", "Heat Press3B(270 Folding 전)",
+      "270 Folding A", "270 Folding B",
+      "Side Press A", "Side Press B",
+      "Taping Unit A", "Taping Unit B"
+    ];
+
+    if (pairableUnits.includes(unit)) {
+      wrapper.style.display = "flex";
+    } else {
+      wrapper.style.display = "none";
+      chk.checked = false; // 다른 유닛 선택 시 오작동 방지용 리셋
+    }
+  }
+
+  // 🛠️ 카운터파트 유닛 명 매칭 연산 알고리즘 함수
+  function getCounterpartUnit(currentUnit) {
+    const mapping = {
+      "Heat Press3A(270 Folding 전)": "Heat Press3B(270 Folding 전)",
+      "Heat Press3B(270 Folding 전)": "Heat Press3A(270 Folding 전)",
+      "270 Folding A": "270 Folding B",
+      "270 Folding B": "270 Folding A",
+      "Side Press A": "Side Press B",
+      "Side Press B": "Side Press A",
+      "Taping Unit A": "Taping Unit B",
+      "Taping Unit B": "Taping Unit A"
+    };
+    return mapping[currentUnit] || null;
+  }
+
   function handleUnitChange() {
     const unit = document.getElementById('unit').value;
     const descSelect = document.getElementById('servo-desc-select');
     const descInput = document.getElementById('servo-desc-input');
 
-    if (unit === 'Taping Unit') {
+    // Taping Unit A 혹은 B 분기 처리 대응
+    if (unit.startsWith('Taping Unit')) {
       updatePartOptions(tapingParts);
       descSelect.style.display = 'none';
       descInput.style.display = 'block';
@@ -624,6 +693,8 @@
       descSelect.style.display = 'block';
       descInput.style.display = 'none';
     }
+
+    checkCommonApplyVisibility();
   }
 
   function updatePartOptions(optionsArray) {
@@ -679,6 +750,7 @@
     const worker = document.getElementById('worker').value.trim();
     const requester = document.getElementById('requester').value.trim();
     const contentType = document.getElementById('contentType').value;
+    const isCommonApply = document.getElementById('common-apply').checked;
 
     if (!line || !unit || !worker || !contentType) {
       alert("공통 필수 항목(라인, 유닛, 변경자, 변경내용)을 모두 입력해주세요.");
@@ -688,7 +760,18 @@
     const combinedWorker = requester ? `${worker} - 요청: ${requester}` : worker;
 
     let sub1 = "", sub2 = "", sub3 = "", sub4 = "", sub5 = "";
-    let clipboardText = `[EOL Folding Parameter 변경 공유]\n• 라인(Line): ${line}\n• 유닛(Unit): ${unit}\n• 변경자(Worker): ${worker}\n`;
+    
+    // 🛠️ 클립보드 문자열 조립 최적화 빌더
+    let clipboardText = `[EOL Folding Parameter 변경 공유]\n• 라인(Line): ${line}\n`;
+    
+    if (isCommonApply && getCounterpartUnit(unit)) {
+      const counterUnit = getCounterpartUnit(unit);
+      clipboardText += `• 유닛(Unit): ${unit} & ${counterUnit} (★A/B 공통 적용)\n`;
+    } else {
+      clipboardText += `• 유닛(Unit): ${unit}\n`;
+    }
+    
+    clipboardText += `• 변경자(Worker): ${worker}\n`;
     if(requester) {
       clipboardText += `• 요청자(Requester): ${requester}\n`;
     }
@@ -707,7 +790,7 @@
       const partVal = document.getElementById('servo-part').value;
       
       let descVal = "";
-      if (unit === 'Taping Unit') {
+      if (unit.startsWith('Taping Unit')) {
         descVal = document.getElementById('servo-desc-input').value;
       } else {
         descVal = document.getElementById('servo-desc-select').value;
@@ -735,7 +818,11 @@
     statusDiv.style.color = "orange";
     statusDiv.innerText = "⏳ 데이터 전송 중... (Sending data...)";
 
-    const payload = {
+    // 🛠️ 전송 데이터 배열 빌드 작업 (공통 적용 플래그 계산기)
+    const payloads = [];
+    
+    // 기본 선택 유닛 데이터 구성
+    payloads.push({
       line: line,
       unit: unit,
       worker: combinedWorker, 
@@ -745,8 +832,24 @@
       sub3: sub3, 
       sub4: sub4,
       sub5: sub5
-    };
+    });
 
+    // 만약 A/B 공통 적용 체크가 되어있다면 카운터파트 유닛 로우 추가 생성
+    if (isCommonApply && getCounterpartUnit(unit)) {
+      payloads.push({
+        line: line,
+        unit: getCounterpartUnit(unit),
+        worker: combinedWorker, 
+        contentType: contentType,
+        sub1: sub1,
+        sub2: sub2,
+        sub3: sub3, 
+        sub4: sub4,
+        sub5: sub5
+      });
+    }
+
+    // 클립보드 복사 실행
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(clipboardText).catch(() => fallbackCopyText(clipboardText));
     } else {
@@ -754,24 +857,32 @@
     }
 
     try {
-      await fetch(GOOGLE_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify(payload)
-      });
+      // 🛠️ 구성된 페이로드를 순차적으로 모두 비동기 POST 전송
+      for (const p of payloads) {
+        await fetch(GOOGLE_SCRIPT_URL, {
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(p)
+        });
+      }
 
       statusDiv.style.color = "green";
-      statusDiv.innerText = "✅ 업로드 및 클립보드 복사 완료! 메신저창에 붙여넣기 하세요.";
+      statusDiv.innerText = payloads.length > 1 
+        ? "✅ [공통적용 2건] 업로드 및 클립보드 복사 완료! 메신저창에 붙여넣기 하세요."
+        : "✅ 업로드 및 클립보드 복사 완료! 메신저창에 붙여넣기 하세요.";
 
+      // 입력란 초기화 및 클렌징 작업
       document.getElementById('worker').value = '';
       document.getElementById('requester').value = '';
       document.getElementById('contentType').value = '';
       document.getElementById('unit').value = '';
+      document.getElementById('common-apply').checked = false;
       if(document.getElementById('servo-desc-input')) document.getElementById('servo-desc-input').value = '';
       
       updatePartOptions(defaultParts);
       toggleSubFields();
+      checkCommonApplyVisibility();
 
     } catch (error) {
       console.error(error);
