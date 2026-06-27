@@ -268,22 +268,25 @@
 
     <div class="form-group">
       <label for="unit">2. 유닛 (Unit)</label>
-      <select id="unit" onchange="handleUnitChange()">
-        <option value="">-- 유닛을 선택하세요 / Select Unit --</option>
-        <option value="Pouch Cutter">Pouch Cutter</option>
-        <option value="Heat Press1(Cutter 전)">Heat Press1(Cutter 전)</option>
-        <option value="Heat Press2(90 Folding 전)">Heat Press2(90 Folding 전)</option>
-        <option value="90 Folding">90 Folding</option>
-        <option value="180 Folding">180 Folding</option>
-        <option value="Heat Press3A(270 Folding 전)">Heat Press3A(270 Folding 전)</option>
-        <option value="Heat Press3B(270 Folding 전)">Heat Press3B(270 Folding 전)</option>
-        <option value="270 Folding A">270 Folding A</option>
-        <option value="270 Folding B">270 Folding B</option>
-        <option value="Side Press A">Side Press A</option>
-        <option value="Side Press B">Side Press B</option>
-        <option value="Taping Unit A">Taping Unit A</option>
-        <option value="Taping Unit B">Taping Unit B</option>
-      </select>
+<select id="unit" onchange="handleUnitChange()">
+  <option value="">-- 유닛을 선택하세요 / Select Unit --</option>
+  <option value="Pouch Cutter">Pouch Cutter</option>
+  <option value="Heat Press1(Cutter 전)">Heat Press1(Cutter 전)</option>
+  <option value="Heat Press2(90 Folding 전)">Heat Press2(90 Folding 전)</option>
+  <option value="90 Folding">90 Folding</option>
+  <option value="180 Folding">180 Folding</option>
+  <option value="Heat Press3A(270 Folding 전)">Heat Press3A(270 Folding 전)</option>
+  <option value="Heat Press3B(270 Folding 전)">Heat Press3B(270 Folding 전)</option>
+  <option value="270 Folding A">270 Folding B</option>
+  <option value="270 Folding B">270 Folding A</option>
+  <option value="Side Press A">Side Press A</option>
+  <option value="Side Press B">Side Press B</option>
+  <option value="Taping Unit A">Taping Unit A</option>
+  <option value="Taping Unit B">Taping Unit B</option>
+  <!-- 🛠️ 추가된 항목 -->
+  <option value="Taping Press A">Taping Press A</option>
+  <option value="Taping Press B">Taping Press B</option>
+</select>
     </div>
 
     <!-- 🛠️ A/B 공통 적용 체크박스 추가 -->
@@ -414,22 +417,25 @@
       </div>
       <div class="form-group">
         <label>🔎 유닛 필터</label>
-        <select id="filter-unit" onchange="renderHistoryTable()">
-          <option value="">- 전체 유닛 -</option>
-          <option value="Pouch Cutter">Pouch Cutter</option>
-          <option value="Heat Press1(Cutter 전)">Heat Press1(Cutter 전)</option>
-          <option value="Heat Press2(90 Folding 전)">Heat Press2(90 Folding 전)</option>
-          <option value="90 Folding">90 Folding</option>
-          <option value="180 Folding">180 Folding</option>
-          <option value="Heat Press3A(270 Folding 전)">Heat Press3A(270 Folding 전)</option>
-          <option value="Heat Press3B(270 Folding 전)">Heat Press3B(270 Folding 전)</option>
-          <option value="270 Folding A">270 Folding A</option>
-          <option value="270 Folding B">270 Folding B</option>
-          <option value="Side Press A">Side Press A</option>
-          <option value="Side Press B">Side Press B</option>
-          <option value="Taping Unit A">Taping Unit A</option>
-          <option value="Taping Unit B">Taping Unit B</option>
-        </select>
+<select id="filter-unit" onchange="renderHistoryTable()">
+  <option value="">- 전체 유닛 -</option>
+  <option value="Pouch Cutter">Pouch Cutter</option>
+  <option value="Heat Press1(Cutter 전)">Heat Press1(Cutter 전)</option>
+  <option value="Heat Press2(90 Folding 전)">Heat Press2(90 Folding 전)</option>
+  <option value="90 Folding">90 Folding</option>
+  <option value="180 Folding">180 Folding</option>
+  <option value="Heat Press3A(270 Folding 전)">Heat Press3A(270 Folding 전)</option>
+  <option value="Heat Press3B(270 Folding 전)">Heat Press3B(270 Folding 전)</option>
+  <option value="270 Folding A">270 Folding A</option>
+  <option value="270 Folding B">270 Folding B</option>
+  <option value="Side Press A">Side Press A</option>
+  <option value="Side Press B">Side Press B</option>
+  <option value="Taping Unit A">Taping Unit A</option>
+  <option value="Taping Unit B">Taping Unit B</option>
+  <!-- 🛠️ 추가된 항목 -->
+  <option value="Taping Press A">Taping Press A</option>
+  <option value="Taping Press B">Taping Press B</option>
+</select>
       </div>
       <div class="form-group">
         <label>🔎 축(Axis) 필터</label>
@@ -473,7 +479,7 @@
 </div>
 
 <script>
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzoxSA4Ik0cSWVIEV1z-BSboE1ws_XmYSv_HSWvor5USZtMlZ620cwE-iOmIqhZEPBm/exec";
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzTzIbltU0wgVvn-BonmlXxEjWr8IE-w_v7k42V61PEb5vWwN2VDk02mOPtpKp0sHqy/exec";
 
   let cachedHistoryData = []; 
 
