@@ -379,4 +379,12 @@
       document.getElementById('contentType').value = '';
       toggleSubFields();
 
+    } catch (error) {
+      console.error(error);
+      statusDiv.style.color = "red";
+      statusDiv.innerText = "❌ 전송 오류가 발생했으나 클립보드는 복사되었습니다.\n(Error occurred but text is copied to clipboard.)";
     }
+  }
+</script>
+</body>
+</html>
