@@ -13,7 +13,7 @@
       color: #333;
     }
     .container {
-      max-width: 950px;
+      max-width: 1000px;
       margin: 40px auto;
       background: white;
       padding: 30px;
@@ -71,7 +71,6 @@
       margin-bottom: 0;
     }
     
-    /* 체크박스 전용 스타일 */
     .checkbox-group {
       background-color: #f8fafc;
       border: 1px solid #e2e8f0;
@@ -234,14 +233,16 @@
       background-color: #fcfcfc;
     }
     
-    th:nth-child(1) { width: 55px; }  
-    th:nth-child(2) { width: 155px; } 
-    th:nth-child(3) { width: 140px; } 
-    th:nth-child(4) { width: 85px; }  
-    th:nth-child(5) { width: 65px; }  
-    th:nth-child(6) { width: 160px; } 
-    th:nth-child(7) { width: 85px; }  
-    th:nth-child(8) { width: auto; }  
+    /* 열 너비 최적화 (9개 열 대응) */
+    th:nth-child(1) { width: 110px; } /* 변경 일자 */
+    th:nth-child(2) { width: 55px; }  /* 라인 */
+    th:nth-child(3) { width: 155px; } /* 유닛 */
+    th:nth-child(4) { width: 130px; } /* 변경자 */
+    th:nth-child(5) { width: 85px; }  /* 유형 */
+    th:nth-child(6) { width: 55px; }  /* 축 */
+    th:nth-child(7) { width: 150px; } /* 파트 정보 */
+    th:nth-child(8) { width: 85px; }  /* 변경 값 */
+    th:nth-child(9) { width: auto; }  /* 변경 사유 */
   </style>
 </head>
 <body>
@@ -268,28 +269,26 @@
 
     <div class="form-group">
       <label for="unit">2. 유닛 (Unit)</label>
-<select id="unit" onchange="handleUnitChange()">
-  <option value="">-- 유닛을 선택하세요 / Select Unit --</option>
-  <option value="Pouch Cutter">Pouch Cutter</option>
-  <option value="Heat Press1(Cutter 전)">Heat Press1(Cutter 전)</option>
-  <option value="Heat Press2(90 Folding 전)">Heat Press2(90 Folding 전)</option>
-  <option value="90 Folding">90 Folding</option>
-  <option value="180 Folding">180 Folding</option>
-  <option value="Heat Press3A(270 Folding 전)">Heat Press3A(270 Folding 전)</option>
-  <option value="Heat Press3B(270 Folding 전)">Heat Press3B(270 Folding 전)</option>
-  <option value="270 Folding A">270 Folding B</option>
-  <option value="270 Folding B">270 Folding A</option>
-  <option value="Side Press A">Side Press A</option>
-  <option value="Side Press B">Side Press B</option>
-  <option value="Taping Unit A">Taping Unit A</option>
-  <option value="Taping Unit B">Taping Unit B</option>
-  <!-- 🛠️ 추가된 항목 -->
-  <option value="Taping Press A">Taping Press A</option>
-  <option value="Taping Press B">Taping Press B</option>
-</select>
+      <select id="unit" onchange="handleUnitChange()">
+        <option value="">-- 유닛을 선택하세요 / Select Unit --</option>
+        <option value="Pouch Cutter">Pouch Cutter</option>
+        <option value="Heat Press1(Cutter 전)">Heat Press1(Cutter 전)</option>
+        <option value="Heat Press2(90 Folding 전)">Heat Press2(90 Folding 전)</option>
+        <option value="90 Folding">90 Folding</option>
+        <option value="180 Folding">180 Folding</option>
+        <option value="Heat Press3A(270 Folding 전)">Heat Press3A(270 Folding 전)</option>
+        <option value="Heat Press3B(270 Folding 전)">Heat Press3B(270 Folding 전)</option>
+        <option value="270 Folding A">270 Folding A</option>
+        <option value="270 Folding B">270 Folding B</option>
+        <option value="Side Press A">Side Press A</option>
+        <option value="Side Press B">Side Press B</option>
+        <option value="Taping Unit A">Taping Unit A</option>
+        <option value="Taping Unit B">Taping Unit B</option>
+        <option value="Taping Press A">Taping Press A</option>
+        <option value="Taping Press B">Taping Press B</option>
+      </select>
     </div>
 
-    <!-- 🛠️ A/B 공통 적용 체크박스 추가 -->
     <div class="checkbox-group" id="common-apply-wrapper">
       <input type="checkbox" id="common-apply" />
       <label for="common-apply"><strong>🔄 A/B 공통 적용</strong> (선택 시 반대편 유닛도 행 자동 생성 및 동시 업로드)</label>
@@ -417,25 +416,24 @@
       </div>
       <div class="form-group">
         <label>🔎 유닛 필터</label>
-<select id="filter-unit" onchange="renderHistoryTable()">
-  <option value="">- 전체 유닛 -</option>
-  <option value="Pouch Cutter">Pouch Cutter</option>
-  <option value="Heat Press1(Cutter 전)">Heat Press1(Cutter 전)</option>
-  <option value="Heat Press2(90 Folding 전)">Heat Press2(90 Folding 전)</option>
-  <option value="90 Folding">90 Folding</option>
-  <option value="180 Folding">180 Folding</option>
-  <option value="Heat Press3A(270 Folding 전)">Heat Press3A(270 Folding 전)</option>
-  <option value="Heat Press3B(270 Folding 전)">Heat Press3B(270 Folding 전)</option>
-  <option value="270 Folding A">270 Folding A</option>
-  <option value="270 Folding B">270 Folding B</option>
-  <option value="Side Press A">Side Press A</option>
-  <option value="Side Press B">Side Press B</option>
-  <option value="Taping Unit A">Taping Unit A</option>
-  <option value="Taping Unit B">Taping Unit B</option>
-  <!-- 🛠️ 추가된 항목 -->
-  <option value="Taping Press A">Taping Press A</option>
-  <option value="Taping Press B">Taping Press B</option>
-</select>
+        <select id="filter-unit" onchange="renderHistoryTable()">
+          <option value="">- 전체 유닛 -</option>
+          <option value="Pouch Cutter">Pouch Cutter</option>
+          <option value="Heat Press1(Cutter 전)">Heat Press1(Cutter 전)</option>
+          <option value="Heat Press2(90 Folding 전)">Heat Press2(90 Folding 전)</option>
+          <option value="90 Folding">90 Folding</option>
+          <option value="180 Folding">180 Folding</option>
+          <option value="Heat Press3A(270 Folding 전)">Heat Press3A(270 Folding 전)</option>
+          <option value="Heat Press3B(270 Folding 전)">Heat Press3B(270 Folding 전)</option>
+          <option value="270 Folding A">270 Folding A</option>
+          <option value="270 Folding B">270 Folding B</option>
+          <option value="Side Press A">Side Press A</option>
+          <option value="Side Press B">Side Press B</option>
+          <option value="Taping Unit A">Taping Unit A</option>
+          <option value="Taping Unit B">Taping Unit B</option>
+          <option value="Taping Press A">Taping Press A</option>
+          <option value="Taping Press B">Taping Press B</option>
+        </select>
       </div>
       <div class="form-group">
         <label>🔎 축(Axis) 필터</label>
@@ -456,6 +454,7 @@
       <table>
         <thead>
           <tr>
+            <th>변경 일자</th>
             <th>라인</th>
             <th>유닛</th>
             <th>변경자 (요청자)</th>
@@ -468,7 +467,7 @@
         </thead>
         <tbody id="history-tbody">
           <tr>
-            <td colspan="8" style="text-align: center; color: #7f8c8d; padding: 20px;">'이력 불러오기' 버튼을 눌러주세요.</td>
+            <td colspan="9" style="text-align: center; color: #7f8c8d; padding: 20px;">'이력 불러오기' 버튼을 눌러주세요.</td>
           </tr>
         </tbody>
       </table>
@@ -518,7 +517,7 @@
   window.addEventListener('load', () => {
     initLineOptions();
     updatePartOptions(defaultParts);
-    checkCommonApplyVisibility(); // 초기 체크박스 가시성 검사
+    checkCommonApplyVisibility();
   });
 
   function switchMode(mode) {
@@ -539,16 +538,15 @@
 
   async function loadHistoryFromServer() {
     const tbody = document.getElementById('history-tbody');
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#3498db; font-weight:bold;">⏳ 데이터를 불러오는 중입니다...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#3498db; font-weight:bold;">⏳ 데이터를 불러오는 중입니다...</td></tr>';
     
     try {
       const response = await fetch(GOOGLE_SCRIPT_URL);
       if (!response.ok) throw new Error("Network response was not ok");
       
       const data = await response.json();
-      
       if (data && data.error) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:#e74c3c;">❌ 서버 에러: ${data.error}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px; color:#e74c3c;">❌ 서버 에러: ${data.error}</td></tr>`;
         return;
       }
 
@@ -557,125 +555,150 @@
       
     } catch(e) {
       console.error("데이터 로드 실패:", e);
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#e74c3c;">❌ 데이터를 가져오지 못했습니다.<br>배포 상태를 다시 확인해 주세요.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#e74c3c;">❌ 데이터를 가져오지 못했습니다.<br>배포 상태를 다시 확인해 주세요.</td></tr>';
     }
   }
 
-// 1. HTML 파일 하단 <script> 태그 내부에서 이 함수를 찾으세요.
-function renderHistoryTable() {
-  const filterLine = document.getElementById('filter-line').value;
-  const filterUnit = document.getElementById('filter-unit').value;
-  const filterAxis = document.getElementById('filter-axis').value;
-  const filterPart = document.getElementById('filter-part').value.trim().toLowerCase();
-  
-  const tbody = document.getElementById('history-tbody');
-  tbody.innerHTML = '';
+  function renderHistoryTable() {
+    const filterLine = document.getElementById('filter-line').value;
+    const filterUnit = document.getElementById('filter-unit').value;
+    const filterAxis = document.getElementById('filter-axis').value;
+    const filterPart = document.getElementById('filter-part').value.trim().toLowerCase();
+    
+    const tbody = document.getElementById('history-tbody');
+    tbody.innerHTML = '';
 
-  if (!cachedHistoryData || cachedHistoryData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#aaa;">조회된 이력 데이터가 없습니다.</td></tr>';
-    return;
-  }
-
-  let filteredData = cachedHistoryData.filter(row => {
-    if (row.length < 3) return false;
-    
-    // 💡 [이 부분을 수정했습니다] 
-    // 서버에서 "1-1 2026-06-27..."처럼 넘어오는 데이터에서 첫 공백 앞의 "1-1"만 잘라내어 필터와 비교합니다.
-    const rawLineVal = row[1] ? String(row[1]).trim() : '';
-    const lineVal = rawLineVal.split(' ')[0]; 
-    
-    // 라인 필터 비교
-    const matchLine = filterLine ? (lineVal === filterLine) : true;
-    
-    const unitVal = row[2] ? String(row[2]).trim() : '';
-    const matchUnit = filterUnit ? (unitVal === filterUnit) : true;
-    
-    const contentType = row[4] || '';
-    const axisVal = contentType === 'Servo Parameter' ? (row[6] ? String(row[6]).trim() : '') : '';
-    const partVal = contentType === 'Servo Parameter' ? (row[5] || '') : (row[5] || '');
-    
-    const matchAxis = filterAxis ? (axisVal === filterAxis) : true;
-    const matchPart = filterPart ? (String(partVal).toLowerCase().includes(filterPart)) : true;
-    
-    return matchLine && matchUnit && matchAxis && matchPart;
-  });
-
-  if (filteredData.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#aaa;">조건에 일치하는 이력이 없습니다.</td></tr>';
-    return;
-  }
-
-  filteredData.slice().reverse().forEach(row => {
-    const tr = document.createElement('tr');
-    
-    const lineData = row[1] || '';        
-    const unitData = row[2] || '';        
-    const workerData = row[3] || '';      
-    const contentType = row[4] || '';     
-    
-    const colF = row[5] || '';            
-    const colG = row[6] || '';            
-    const colH = row[7] || '';            
-    const colI = row[8] || '';            
-    const colJ = row[9] || '';            
-
-    let personDisplay = workerData;
-    if (workerData.includes(" - 요청: ")) {
-      const parts = workerData.split(" - 요청: ");
-      personDisplay = `<strong>${parts[0]}</strong><br><span style="font-size:11px; color:#64748b;">요청: ${parts[1]}</span>`;
+    if (!cachedHistoryData || cachedHistoryData.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#aaa;">조회된 이력 데이터가 없습니다.</td></tr>';
+      return;
     }
 
-    let displayAxis = "-";
-    let displayPart = "";
+    // 🛠️ 필터 및 데이터 분리 핵심 연산 알고리즘
+    let filteredData = cachedHistoryData.filter(row => {
+      if (row.length < 3) return false;
+      
+      const rawBColumn = row[1] ? String(row[1]).trim() : '';
+      let lineVal = '';
+      
+      // 구분자 " || " 가 들어있거나 공백 구조 분해 적용하여 순수 라인명 확보
+      if (rawBColumn.includes(' || ')) {
+        lineVal = rawBColumn.split(' || ')[0].trim();
+      } else {
+        lineVal = rawBColumn.split(' ')[0].trim();
+      }
+      
+      // 🎯 정확한 순수 라인 필터 비교 검증 수행
+      const matchLine = filterLine ? (lineVal === filterLine) : true;
+      
+      const unitVal = row[2] ? String(row[2]).trim() : '';
+      const matchUnit = filterUnit ? (unitVal === filterUnit) : true;
+      
+      const contentType = row[4] || '';
+      const axisVal = contentType === 'Servo Parameter' ? (row[6] ? String(row[6]).trim() : '') : '';
+      const partVal = contentType === 'Servo Parameter' ? (row[5] || '') : (row[5] || '');
+      
+      const matchAxis = filterAxis ? (axisVal === filterAxis) : true;
+      const matchPart = filterPart ? (String(partVal).toLowerCase().includes(filterPart)) : true;
+      
+      return matchLine && matchUnit && matchAxis && matchPart;
+    });
 
-    if (contentType === 'Servo Parameter') {
-      displayAxis = `<strong style="color:#2c3e50;">${colG}</strong>`;
-      displayPart = `<span style="font-weight:500;">${colF}</span><br><span style="font-size:11px; color:#64748b;">${colH}</span>`;
-    } else if (contentType === 'Temperature') {
-      displayPart = `<span style="color:#e11d48; font-weight:bold;">Temperature (온도)</span>`;
-    } else if (contentType === 'Normal Parameter') {
-      displayPart = `<span style="color:#2563eb; font-weight:bold;">${colF}</span>`;
-    } else {
-      displayPart = colF;
+    if (filteredData.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#aaa;">조건에 일치하는 이력이 없습니다.</td></tr>';
+      return;
     }
 
-    tr.innerHTML = `
-      <td>${lineData}</td>
-      <td><strong>${unitData}</strong></td>
-      <td>${personDisplay}</td>
-      <td><span style="font-size:11px; padding:2px 5px; background:#f1f5f9; border-radius:4px; color:#475569;">${contentType.replace(" Parameter","")}</span></td>
-      <td style="text-align:center;">${displayAxis}</td>
-      <td>${displayPart}</td>
-      <td style="color:#16a34a; font-weight:bold;">${colI}</td>
-      <td style="color:#334155; font-size:12px;">${colJ}</td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+    filteredData.slice().reverse().forEach(row => {
+      const tr = document.createElement('tr');
+      
+      const rawBColumn = row[1] || '';        
+      const unitData = row[2] || '';        
+      const workerData = row[3] || '';      
+      const contentType = row[4] || '';     
+      
+      const colF = row[5] || '';            
+      const colG = row[6] || '';            
+      const colH = row[7] || '';            
+      const colI = row[8] || '';            
+      const colJ = row[9] || '';            
 
-  // 🛠️ 유닛 규칙성 검증 및 체크박스 가시성 컨트롤 제어 함수
+      // 데이터 가공 분리 및 시간 분/시 정제 (초 단위 절사 분해 연산)
+      let displayLine = rawBColumn;
+      let displayTime = "-";
+
+      if (rawBColumn.includes(' || ')) {
+        var partsArr = rawBColumn.split(' || ');
+        displayLine = partsArr[0].trim();
+        displayTime = partsArr[1].trim(); 
+      } else if (rawBColumn.includes(' ')) {
+        var firstSpaceIdx = rawBColumn.indexOf(' ');
+        displayLine = rawBColumn.substring(0, firstSpaceIdx).trim();
+        var rawTime = rawBColumn.substring(firstSpaceIdx + 1).trim();
+        // 시:분 데이터까지만 자르기 (yyyy-MM-dd HH:mm 구조)
+        if(rawTime.length >= 16) {
+          displayTime = rawTime.substring(0, 16);
+        } else {
+          displayTime = rawTime;
+        }
+      }
+
+      let personDisplay = workerData;
+      if (workerData.includes(" - 요청: ")) {
+        const parts = workerData.split(" - 요청: ");
+        personDisplay = `<strong>${parts[0]}</strong><br><span style="font-size:11px; color:#64748b;">요청: ${parts[1]}</span>`;
+      }
+
+      let displayAxis = "-";
+      let displayPart = "";
+
+      if (contentType === 'Servo Parameter') {
+        displayAxis = `<strong style="color:#2c3e50;">${colG}</strong>`;
+        displayPart = `<span style="font-weight:500;">${colF}</span><br><span style="font-size:11px; color:#64748b;">${colH}</span>`;
+      } else if (contentType === 'Temperature') {
+        displayPart = `<span style="color:#e11d48; font-weight:bold;">Temperature (온도)</span>`;
+      } else if (contentType === 'Normal Parameter') {
+        displayPart = `<span style="color:#2563eb; font-weight:bold;">${colF}</span>`;
+      } else {
+        displayPart = colF;
+      }
+
+      // 🛠️ 변경 일자와 라인이 깔끔하게 분리되어 9개 열로 표출되도록 드로잉 바인딩
+      tr.innerHTML = `
+        <td style="color:#475569; font-size:12px;">${displayTime}</td>
+        <td style="text-align:center; font-weight:bold;">${displayLine}</td>
+        <td><strong>${unitData}</strong></td>
+        <td>${personDisplay}</td>
+        <td><span style="font-size:11px; padding:2px 5px; background:#f1f5f9; border-radius:4px; color:#475569;">${contentType.replace(" Parameter","")}</span></td>
+        <td style="text-align:center;">${displayAxis}</td>
+        <td>${displayPart}</td>
+        <td style="color:#16a34a; font-weight:bold;">${colI}</td>
+        <td style="color:#334155; font-size:12px;">${colJ}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
   function checkCommonApplyVisibility() {
     const unit = document.getElementById('unit').value;
     const wrapper = document.getElementById('common-apply-wrapper');
     const chk = document.getElementById('common-apply');
 
-    // 쌍이 존재하는 유닛들만 체크박스 활성화
     const pairableUnits = [
       "Heat Press3A(270 Folding 전)", "Heat Press3B(270 Folding 전)",
       "270 Folding A", "270 Folding B",
       "Side Press A", "Side Press B",
-      "Taping Unit A", "Taping Unit B"
+      "Taping Unit A", "Taping Unit B",
+      "Taping Press A", "Taping Press B"
     ];
 
     if (pairableUnits.includes(unit)) {
       wrapper.style.display = "flex";
     } else {
       wrapper.style.display = "none";
-      chk.checked = false; // 다른 유닛 선택 시 오작동 방지용 리셋
+      chk.checked = false; 
     }
   }
 
-  // 🛠️ 카운터파트 유닛 명 매칭 연산 알고리즘 함수
   function getCounterpartUnit(currentUnit) {
     const mapping = {
       "Heat Press3A(270 Folding 전)": "Heat Press3B(270 Folding 전)",
@@ -685,7 +708,9 @@ function renderHistoryTable() {
       "Side Press A": "Side Press B",
       "Side Press B": "Side Press A",
       "Taping Unit A": "Taping Unit B",
-      "Taping Unit B": "Taping Unit A"
+      "Taping Unit B": "Taping Unit A",
+      "Taping Press A": "Taping Press B",
+      "Taping Press B": "Taping Press A"
     };
     return mapping[currentUnit] || null;
   }
@@ -695,7 +720,6 @@ function renderHistoryTable() {
     const descSelect = document.getElementById('servo-desc-select');
     const descInput = document.getElementById('servo-desc-input');
 
-    // Taping Unit A 혹은 B 분기 처리 대응
     if (unit.startsWith('Taping Unit')) {
       updatePartOptions(tapingParts);
       descSelect.style.display = 'none';
@@ -705,7 +729,6 @@ function renderHistoryTable() {
       descSelect.style.display = 'block';
       descInput.style.display = 'none';
     }
-
     checkCommonApplyVisibility();
   }
 
@@ -770,23 +793,17 @@ function renderHistoryTable() {
     }
 
     const combinedWorker = requester ? `${worker} - 요청: ${requester}` : worker;
-
     let sub1 = "", sub2 = "", sub3 = "", sub4 = "", sub5 = "";
     
-    // 🛠️ 클립보드 문자열 조립 최적화 빌더
     let clipboardText = `[EOL Folding Parameter 변경 공유]\n• 라인(Line): ${line}\n`;
-    
     if (isCommonApply && getCounterpartUnit(unit)) {
       const counterUnit = getCounterpartUnit(unit);
       clipboardText += `• 유닛(Unit): ${unit} & ${counterUnit} (★A/B 공통 적용)\n`;
     } else {
       clipboardText += `• 유닛(Unit): ${unit}\n`;
     }
-    
     clipboardText += `• 변경자(Worker): ${worker}\n`;
-    if(requester) {
-      clipboardText += `• 요청자(Requester): ${requester}\n`;
-    }
+    if(requester) clipboardText += `• 요청자(Requester): ${requester}\n`;
     clipboardText += `• 변경유형(Type): ${contentType}\n`;
 
     if (contentType === 'Temperature') {
@@ -800,21 +817,11 @@ function renderHistoryTable() {
       sub1 = document.getElementById('servo-type').value;
       sub2 = document.getElementById('servo-axis').value;
       const partVal = document.getElementById('servo-part').value;
-      
-      let descVal = "";
-      if (unit.startsWith('Taping Unit')) {
-        descVal = document.getElementById('servo-desc-input').value;
-      } else {
-        descVal = document.getElementById('servo-desc-select').value;
-      }
+      let descVal = unit.startsWith('Taping Unit') ? document.getElementById('servo-desc-input').value : document.getElementById('servo-desc-select').value;
       
       sub4 = document.getElementById('servo-val').value;
       sub5 = document.getElementById('servo-reason').value;
-
-      if(!sub1 || !sub2 || !partVal || !descVal || !sub4 || !sub5) { 
-        alert("세부 항목을 모두 완성해주세요."); 
-        return; 
-      }
+      if(!sub1 || !sub2 || !partVal || !descVal || !sub4 || !sub5) { alert("세부 항목을 모두 완성해주세요."); return; }
 
       sub3 = `${partVal} - ${descVal}`;
       clipboardText += `• 구분(Type): ${sub1}\n• 축(Axis): ${sub2}\n• Part 정보: ${sub3}\n• 변경 값(Value): ${sub4}\n• 변경 사유(Reason): ${sub5}`;
@@ -830,38 +837,13 @@ function renderHistoryTable() {
     statusDiv.style.color = "orange";
     statusDiv.innerText = "⏳ 데이터 전송 중... (Sending data...)";
 
-    // 🛠️ 전송 데이터 배열 빌드 작업 (공통 적용 플래그 계산기)
     const payloads = [];
-    
-    // 기본 선택 유닛 데이터 구성
-    payloads.push({
-      line: line,
-      unit: unit,
-      worker: combinedWorker, 
-      contentType: contentType,
-      sub1: sub1,
-      sub2: sub2,
-      sub3: sub3, 
-      sub4: sub4,
-      sub5: sub5
-    });
+    payloads.push({ line: line, unit: unit, worker: combinedWorker, contentType: contentType, sub1: sub1, sub2: sub2, sub3: sub3, sub4: sub4, sub5: sub5 });
 
-    // 만약 A/B 공통 적용 체크가 되어있다면 카운터파트 유닛 로우 추가 생성
     if (isCommonApply && getCounterpartUnit(unit)) {
-      payloads.push({
-        line: line,
-        unit: getCounterpartUnit(unit),
-        worker: combinedWorker, 
-        contentType: contentType,
-        sub1: sub1,
-        sub2: sub2,
-        sub3: sub3, 
-        sub4: sub4,
-        sub5: sub5
-      });
+      payloads.push({ line: line, unit: getCounterpartUnit(unit), worker: combinedWorker, contentType: contentType, sub1: sub1, sub2: sub2, sub3: sub3, sub4: sub4, sub5: sub5 });
     }
 
-    // 클립보드 복사 실행
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(clipboardText).catch(() => fallbackCopyText(clipboardText));
     } else {
@@ -869,7 +851,6 @@ function renderHistoryTable() {
     }
 
     try {
-      // 🛠️ 구성된 페이로드를 순차적으로 모두 비동기 POST 전송
       for (const p of payloads) {
         await fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
@@ -880,17 +861,13 @@ function renderHistoryTable() {
       }
 
       statusDiv.style.color = "green";
-      statusDiv.innerText = payloads.length > 1 
-        ? "✅ [공통적용 2건] 업로드 및 클립보드 복사 완료! 메신저창에 붙여넣기 하세요."
-        : "✅ 업로드 및 클립보드 복사 완료! 메신저창에 붙여넣기 하세요.";
+      statusDiv.innerText = "✅ 업로드 및 클립보드 복사 완료!";
 
-      // 입력란 초기화 및 클렌징 작업
       document.getElementById('worker').value = '';
       document.getElementById('requester').value = '';
       document.getElementById('contentType').value = '';
       document.getElementById('unit').value = '';
       document.getElementById('common-apply').checked = false;
-      if(document.getElementById('servo-desc-input')) document.getElementById('servo-desc-input').value = '';
       
       updatePartOptions(defaultParts);
       toggleSubFields();
