@@ -183,7 +183,6 @@
     <p>Folding 공정 파라미터 변경 이력 시스템 / Change History System</p>
   </div>
 
-  <!-- 상단 모드 전환 탭 버튼 -->
   <div class="tab-container">
     <button id="tab-input" class="tab-btn active" onclick="switchMode('input')">✍️ 파라미터 등록 (Input)</button>
     <button id="tab-view" class="tab-btn" onclick="switchMode('view')">🔍 이력 조회 (History View)</button>
@@ -321,7 +320,6 @@
   <!-- ================= [2. 이력 조회 영역] ================= -->
   <div id="section-view" style="display: none;">
     
-    <!-- 🔄 수동 조회 방식을 위한 버튼 추가 -->
     <button class="fetch-btn" onclick="loadHistoryFromServer()">🔄 이력 불러오기 (Fetch Data)</button>
 
     <div class="form-group">
@@ -418,13 +416,11 @@
     }
   }
 
-  // 🌐 원격 WebApp URL로부터 직접 데이터를 가져오는 방식으로 핵심 변경 (CORS 가이드 적용)
   async function loadHistoryFromServer() {
     const tbody = document.getElementById('history-tbody');
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#3498db; font-weight:bold;">⏳ 데이터를 불러오는 중입니다...</td></tr>';
     
     try {
-      // doGet(e)을 호출하기 위해 GET 요청 전달
       const response = await fetch(GOOGLE_SCRIPT_URL);
       if (!response.ok) throw new Error("Network response was not ok");
       
@@ -440,10 +436,11 @@
       
     } catch(e) {
       console.error("데이터 로드 실패:", e);
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#e74c3c;">❌ 데이터를 가져오지 못했습니다.<br>Apps Script 파일에 doGet(e) 함수가 배포되어 있는지 확인해 주세요.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#e74c3c;">❌ 데이터를 가져오지 못했습니다.<br>구글 스크립트가 새로 배포(New Version)되었는지 주소를 확인해 주세요.</td></tr>';
     }
   }
 
+  // 🛠️ 대대적 수정: Code.gs의 시트 기록 순서(A열~J열)에 정확하게 매핑
   function renderHistoryTable() {
     const filterUnit = document.getElementById('filter-unit').value;
     const tbody = document.getElementById('history-tbody');
@@ -454,9 +451,10 @@
       return;
     }
 
+    // 유닛명 매핑 검증 기동 (시트의 C열 즉, 데이터의 row[2]가 유닛명입니다)
     let filteredData = cachedHistoryData;
     if (filterUnit) {
-      filteredData = cachedHistoryData.filter(row => row[1] === filterUnit);
+      filteredData = cachedHistoryData.filter(row => row[2] === filterUnit);
     }
 
     if (filteredData.length === 0) {
@@ -464,30 +462,43 @@
       return;
     }
 
-    // 최신 등록 건이 위로 오도록 역순 출력
+    // 최신 등록 데이터가 위로 배치되도록 역순 출력
     filteredData.slice().reverse().forEach(row => {
-      // 행 데이터 길이가 부족한 경우 방어 코드 추가
-      if (row.length < 3) return;
+      if (row.length < 4) return; // 유효성 미달 로우 방어
 
       const tr = document.createElement('tr');
-      const type = row[3] || '';
+      
+      // 구글 시트 구조 추출 정의
+      const lineData = row[1] || '';        // B열: 라인
+      const unitData = row[2] || '';        // C열: 유닛
+      const workerData = row[3] || '';      // D열: 변경자
+      const contentType = row[4] || '';     // E열: 대분류 유형
+      
+      const colF = row[5] || '';            // F열: 세부1
+      const colG = row[6] || '';            // G열: 세부2 (축)
+      const colH = row[7] || '';            // H열: 세부3 (Part)
+      const colI = row[8] || '';            // I열: 변경 값
+      const colJ = row[9] || '';            // J열: 변경 사유
+
       let summaryText = "";
 
-      if (type === 'Temperature') {
-        summaryText = `온도: ${row[4]||''} / 사유: ${row[5]||''}`;
-      } else if (type === 'Servo Parameter') {
-        summaryText = `구분: ${row[4]||''} [${row[5]||''}축] | Part: ${row[6]||''} | 값: ${row[7]||''} / 사유: ${row[8]||''}`;
-      } else if (type === 'Normal Parameter') {
-        summaryText = `타입: ${row[4]||''} | 값: ${row[5]||''} / 사유: ${row[6]||''}`;
+      // 💡 대분류 타입 구분에 맞춰 깔끔한 요약 텍스트 조립
+      if (contentType === 'Temperature') {
+        summaryText = `온도: <strong>${colI}</strong> / 사유: ${colJ}`;
+      } else if (contentType === 'Servo Parameter') {
+        summaryText = `구분: ${colF} [${colG}축] | Part: ${colH} | 값: <strong>${colI}</strong> / 사유: ${colJ}`;
+      } else if (contentType === 'Normal Parameter') {
+        summaryText = `타입: ${colF} | 값: <strong>${colI}</strong> / 사유: ${colJ}`;
       } else {
-        summaryText = `${row[4]||''} ${row[5]||''}`;
+        // 기타 형태 백업 예외 가드
+        summaryText = `값: ${colI} / 사유: ${colJ}`;
       }
 
       tr.innerHTML = `
-        <td>${row[0]||''}</td>
-        <td><strong>${row[1]||''}</strong></td>
-        <td>${row[2]||''}</td>
-        <td>${type}</td>
+        <td>${lineData}</td>
+        <td><strong>${unitData}</strong></td>
+        <td>${workerData}</td>
+        <td><span style="font-size:12px; color:#7f8c8d;">${contentType}</span></td>
         <td style="color:#2c3e50;">${summaryText}</td>
       `;
       tbody.appendChild(tr);
