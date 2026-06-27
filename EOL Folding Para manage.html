@@ -119,6 +119,22 @@
     .button:hover {
       background-color: #218838;
     }
+    .fetch-btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 14px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 15px;
+      transition: background-color 0.2s;
+    }
+    .fetch-btn:hover {
+      background-color: #2980b9;
+    }
     .status-msg {
       margin-top: 15px;
       text-align: center;
@@ -304,6 +320,10 @@
 
   <!-- ================= [2. 이력 조회 영역] ================= -->
   <div id="section-view" style="display: none;">
+    
+    <!-- 🔄 수동 조회 방식을 위한 버튼 추가 -->
+    <button class="fetch-btn" onclick="loadHistoryFromServer()">🔄 이력 불러오기 (Fetch Data)</button>
+
     <div class="form-group">
       <label for="filter-unit">🔎 조회할 유닛 선택 (Select Unit to View)</label>
       <select id="filter-unit" onchange="renderHistoryTable()">
@@ -335,7 +355,7 @@
         </thead>
         <tbody id="history-tbody">
           <tr>
-            <td colspan="5" style="text-align: center; color: #7f8c8d; padding: 20px;">데이터를 불러오는 중입니다...</td>
+            <td colspan="5" style="text-align: center; color: #7f8c8d; padding: 20px;">'이력 불러오기' 버튼을 눌러주세요.</td>
           </tr>
         </tbody>
       </table>
@@ -346,7 +366,7 @@
 </div>
 
 <script>
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzoxSA4Ik0cSWVIEV1z-BSboE1ws_XmYSv_HSWvor5USZtMlZ620cwE-iOmIqhZEPBm/exec";
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFi6dUEwcKAGrCR6fcrFi8aO1U38kIJaVX77gGBwy7ffbEA8heMPiNcbYWZptH58KR/exec";
 
   let cachedHistoryData = []; 
 
@@ -363,7 +383,6 @@
     { value: "Cutting Knife", text: "Cutting Knife" }
   ];
 
-  // 최초 로드시 라인 데이터 동적 생성 함수 정의
   function initLineOptions() {
     const lineSelect = document.getElementById('line');
     lineSelect.innerHTML = '<option value="">-- 라인을 선택하세요 / Select Line --</option>';
@@ -381,10 +400,8 @@
   window.addEventListener('load', () => {
     initLineOptions();
     updatePartOptions(defaultParts);
-    loadHistoryFromServer();
   });
 
-  // 모드 전환 스위칭 함수 (오류 복구 및 흐름 개선)
   function switchMode(mode) {
     document.getElementById('tab-input').classList.remove('active');
     document.getElementById('tab-view').classList.remove('active');
@@ -398,25 +415,32 @@
     } else if (mode === 'view') {
       document.getElementById('tab-view').classList.add('active');
       document.getElementById('section-view').style.display = 'block';
-      loadHistoryFromServer(); 
     }
   }
 
-  // 구글 서버 이력 데이터 호출 (구글 미연동 로컬 브라우저 에러 팅김 방지 가드 장착)
-  function loadHistoryFromServer() {
+  // 🌐 원격 WebApp URL로부터 직접 데이터를 가져오는 방식으로 핵심 변경 (CORS 가이드 적용)
+  async function loadHistoryFromServer() {
+    const tbody = document.getElementById('history-tbody');
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#3498db; font-weight:bold;">⏳ 데이터를 불러오는 중입니다...</td></tr>';
+    
     try {
-      if (typeof google !== 'undefined' && google.script && google.script.run) {
-        google.script.run.withSuccessHandler(function(data) {
-          cachedHistoryData = data;
-          renderHistoryTable();
-        }).getFullHistory();
-      } else {
-        // 로컬 파일 테스트 환경 대응용 알림
-        const tbody = document.getElementById('history-tbody');
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#e74c3c;">[로컬 가이드] Apps Script 웹앱 배포 환경에서만 실제 이력이 로드됩니다.</td></tr>';
+      // doGet(e)을 호출하기 위해 GET 요청 전달
+      const response = await fetch(GOOGLE_SCRIPT_URL);
+      if (!response.ok) throw new Error("Network response was not ok");
+      
+      const data = await response.json();
+      
+      if (data && data.error) {
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:#e74c3c;">❌ 서버 에러: ${data.error}</td></tr>`;
+        return;
       }
+
+      cachedHistoryData = data;
+      renderHistoryTable();
+      
     } catch(e) {
-      console.log("Apps script 통신 호출 대기중...", e);
+      console.error("데이터 로드 실패:", e);
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#e74c3c;">❌ 데이터를 가져오지 못했습니다.<br>Apps Script 파일에 doGet(e) 함수가 배포되어 있는지 확인해 주세요.</td></tr>';
     }
   }
 
@@ -426,6 +450,7 @@
     tbody.innerHTML = '';
 
     if (!cachedHistoryData || cachedHistoryData.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#aaa;">조회된 이력 데이터가 없습니다.</td></tr>';
       return;
     }
 
@@ -439,25 +464,29 @@
       return;
     }
 
+    // 최신 등록 건이 위로 오도록 역순 출력
     filteredData.slice().reverse().forEach(row => {
+      // 행 데이터 길이가 부족한 경우 방어 코드 추가
+      if (row.length < 3) return;
+
       const tr = document.createElement('tr');
-      
+      const type = row[3] || '';
       let summaryText = "";
-      const type = row[3];
+
       if (type === 'Temperature') {
-        summaryText = `온도: ${row[4]} / 사유: ${row[5]}`;
+        summaryText = `온도: ${row[4]||''} / 사유: ${row[5]||''}`;
       } else if (type === 'Servo Parameter') {
-        summaryText = `구분: ${row[4]} [${row[5]}축] | Part: ${row[6]} | 값: ${row[7]} / 사유: ${row[8]}`;
+        summaryText = `구분: ${row[4]||''} [${row[5]||''}축] | Part: ${row[6]||''} | 값: ${row[7]||''} / 사유: ${row[8]||''}`;
       } else if (type === 'Normal Parameter') {
-        summaryText = `타입: ${row[4]} | 값: ${row[5]} / 사유: ${row[6]}`;
+        summaryText = `타입: ${row[4]||''} | 값: ${row[5]||''} / 사유: ${row[6]||''}`;
       } else {
         summaryText = `${row[4]||''} ${row[5]||''}`;
       }
 
       tr.innerHTML = `
-        <td>${row[0]}</td>
-        <td><strong>${row[1]}</strong></td>
-        <td>${row[2]}</td>
+        <td>${row[0]||''}</td>
+        <td><strong>${row[1]||''}</strong></td>
+        <td>${row[2]||''}</td>
         <td>${type}</td>
         <td style="color:#2c3e50;">${summaryText}</td>
       `;
@@ -611,18 +640,13 @@
       statusDiv.style.color = "green";
       statusDiv.innerText = "✅ 업로드 및 클립보드 복사 완료! 메신저창에 붙여넣기 하세요.";
 
-      // 입력 데이터 안전하게 폼 초기화 (라인 데이터 소실 방지)
       document.getElementById('worker').value = '';
       document.getElementById('contentType').value = '';
       document.getElementById('unit').value = '';
-      document.getElementById('servo-desc-input').value = '';
+      if(document.getElementById('servo-desc-input')) document.getElementById('servo-desc-input').value = '';
       
-      // 서브 섹션 UI 숨김 및 Part 셀렉트박스 리셋
       updatePartOptions(defaultParts);
       toggleSubFields();
-      
-      // 실시간 데이터 리로드
-      loadHistoryFromServer();
 
     } catch (error) {
       console.error(error);
