@@ -562,90 +562,95 @@
   }
 
   function renderHistoryTable() {
-    const filterLine = document.getElementById('filter-line').value;
-    const filterUnit = document.getElementById('filter-unit').value;
-    const filterAxis = document.getElementById('filter-axis').value;
-    const filterPart = document.getElementById('filter-part').value.trim().toLowerCase();
-    
-    const tbody = document.getElementById('history-tbody');
-    tbody.innerHTML = '';
+  const filterLine = document.getElementById('filter-line').value;
+  const filterUnit = document.getElementById('filter-unit').value;
+  const filterAxis = document.getElementById('filter-axis').value;
+  const filterPart = document.getElementById('filter-part').value.trim().toLowerCase();
+  
+  const tbody = document.getElementById('history-tbody');
+  tbody.innerHTML = '';
 
-    if (!cachedHistoryData || cachedHistoryData.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#aaa;">조회된 이력 데이터가 없습니다.</td></tr>';
-      return;
-    }
-
-    let filteredData = cachedHistoryData.filter(row => {
-      if (row.length < 3) return false;
-      
-      const lineVal = row[1] ? String(row[1]).trim() : '';
-      const matchLine = filterLine ? (lineVal === filterLine) : true;
-      
-      const unitVal = row[2] ? String(row[2]).trim() : '';
-      const matchUnit = filterUnit ? (unitVal === filterUnit) : true;
-      
-      const contentType = row[4] || '';
-      const axisVal = contentType === 'Servo Parameter' ? (row[6] ? String(row[6]).trim() : '') : '';
-      const partVal = contentType === 'Servo Parameter' ? (row[5] || '') : (row[5] || '');
-      
-      const matchAxis = filterAxis ? (axisVal === filterAxis) : true;
-      const matchPart = filterPart ? (String(partVal).toLowerCase().includes(filterPart)) : true;
-      
-      return matchLine && matchUnit && matchAxis && matchPart;
-    });
-
-    if (filteredData.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#aaa;">조건에 일치하는 이력이 없습니다.</td></tr>';
-      return;
-    }
-
-    filteredData.slice().reverse().forEach(row => {
-      const tr = document.createElement('tr');
-      
-      const lineData = row[1] || '';        
-      const unitData = row[2] || '';        
-      const workerData = row[3] || '';      
-      const contentType = row[4] || '';     
-      
-      const colF = row[5] || '';            
-      const colG = row[6] || '';            
-      const colH = row[7] || '';            
-      const colI = row[8] || '';            
-      const colJ = row[9] || '';            
-
-      let personDisplay = workerData;
-      if (workerData.includes(" - 요청: ")) {
-        const parts = workerData.split(" - 요청: ");
-        personDisplay = `<strong>${parts[0]}</strong><br><span style="font-size:11px; color:#64748b;">요청: ${parts[1]}</span>`;
-      }
-
-      let displayAxis = "-";
-      let displayPart = "";
-
-      if (contentType === 'Servo Parameter') {
-        displayAxis = `<strong style="color:#2c3e50;">${colG}</strong>`;
-        displayPart = `<span style="font-weight:500;">${colF}</span><br><span style="font-size:11px; color:#64748b;">${colH}</span>`;
-      } else if (contentType === 'Temperature') {
-        displayPart = `<span style="color:#e11d48; font-weight:bold;">Temperature (온도)</span>`;
-      } else if (contentType === 'Normal Parameter') {
-        displayPart = `<span style="color:#2563eb; font-weight:bold;">${colF}</span>`;
-      } else {
-        displayPart = colF;
-      }
-
-      tr.innerHTML = `
-        <td>${lineData}</td>
-        <td><strong>${unitData}</strong></td>
-        <td>${personDisplay}</td>
-        <td><span style="font-size:11px; padding:2px 5px; background:#f1f5f9; border-radius:4px; color:#475569;">${contentType.replace(" Parameter","")}</span></td>
-        <td style="text-align:center;">${displayAxis}</td>
-        <td>${displayPart}</td>
-        <td style="color:#16a34a; font-weight:bold;">${colI}</td>
-        <td style="color:#334155; font-size:12px;">${colJ}</td>
-      `;
-      tbody.appendChild(tr);
-    });
+  if (!cachedHistoryData || cachedHistoryData.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#aaa;">조회된 이력 데이터가 없습니다.</td></tr>';
+    return;
   }
+
+  let filteredData = cachedHistoryData.filter(row => {
+    if (row.length < 3) return false;
+    
+    // 💡 [이 부분을 수정했습니다] 
+    // 서버에서 "1-1 2026-06-27..."처럼 넘어오는 데이터에서 첫 공백 앞의 "1-1"만 잘라내어 필터와 비교합니다.
+    const rawLineVal = row[1] ? String(row[1]).trim() : '';
+    const lineVal = rawLineVal.split(' ')[0]; 
+    
+    // 라인 필터 비교
+    const matchLine = filterLine ? (lineVal === filterLine) : true;
+    
+    const unitVal = row[2] ? String(row[2]).trim() : '';
+    const matchUnit = filterUnit ? (unitVal === filterUnit) : true;
+    
+    const contentType = row[4] || '';
+    const axisVal = contentType === 'Servo Parameter' ? (row[6] ? String(row[6]).trim() : '') : '';
+    const partVal = contentType === 'Servo Parameter' ? (row[5] || '') : (row[5] || '');
+    
+    const matchAxis = filterAxis ? (axisVal === filterAxis) : true;
+    const matchPart = filterPart ? (String(partVal).toLowerCase().includes(filterPart)) : true;
+    
+    return matchLine && matchUnit && matchAxis && matchPart;
+  });
+
+  if (filteredData.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:20px; color:#aaa;">조건에 일치하는 이력이 없습니다.</td></tr>';
+    return;
+  }
+
+  filteredData.slice().reverse().forEach(row => {
+    const tr = document.createElement('tr');
+    
+    const lineData = row[1] || '';        
+    const unitData = row[2] || '';        
+    const workerData = row[3] || '';      
+    const contentType = row[4] || '';     
+    
+    const colF = row[5] || '';            
+    const colG = row[6] || '';            
+    const colH = row[7] || '';            
+    const colI = row[8] || '';            
+    const colJ = row[9] || '';            
+
+    let personDisplay = workerData;
+    if (workerData.includes(" - 요청: ")) {
+      const parts = workerData.split(" - 요청: ");
+      personDisplay = `<strong>${parts[0]}</strong><br><span style="font-size:11px; color:#64748b;">요청: ${parts[1]}</span>`;
+    }
+
+    let displayAxis = "-";
+    let displayPart = "";
+
+    if (contentType === 'Servo Parameter') {
+      displayAxis = `<strong style="color:#2c3e50;">${colG}</strong>`;
+      displayPart = `<span style="font-weight:500;">${colF}</span><br><span style="font-size:11px; color:#64748b;">${colH}</span>`;
+    } else if (contentType === 'Temperature') {
+      displayPart = `<span style="color:#e11d48; font-weight:bold;">Temperature (온도)</span>`;
+    } else if (contentType === 'Normal Parameter') {
+      displayPart = `<span style="color:#2563eb; font-weight:bold;">${colF}</span>`;
+    } else {
+      displayPart = colF;
+    }
+
+    tr.innerHTML = `
+      <td>${lineData}</td>
+      <td><strong>${unitData}</strong></td>
+      <td>${personDisplay}</td>
+      <td><span style="font-size:11px; padding:2px 5px; background:#f1f5f9; border-radius:4px; color:#475569;">${contentType.replace(" Parameter","")}</span></td>
+      <td style="text-align:center;">${displayAxis}</td>
+      <td>${displayPart}</td>
+      <td style="color:#16a34a; font-weight:bold;">${colI}</td>
+      <td style="color:#334155; font-size:12px;">${colJ}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
 
   // 🛠️ 유닛 규칙성 검증 및 체크박스 가시성 컨트롤 제어 함수
   function checkCommonApplyVisibility() {
