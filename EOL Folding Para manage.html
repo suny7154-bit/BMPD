@@ -36,7 +36,6 @@
       color: #7f8c8d;
       margin: 0;
     }
-    /* 모드 전환 탭 스타일 */
     .tab-container {
       display: flex;
       margin-bottom: 25px;
@@ -127,7 +126,6 @@
       color: #4a4a4a;
       font-size: 14px;
     }
-    /* 이력 조회 엑셀 스타일 테이블 */
     .table-wrapper {
       overflow-x: auto;
       margin-top: 15px;
@@ -188,8 +186,8 @@
       <label for="unit">2. 유닛 (Unit)</label>
       <select id="unit" onchange="handleUnitChange()">
         <option value="">-- 유닛을 선택하세요 / Select Unit --</option>
-        <option value="Heat Press1(Cutter 전)">Heat Press1(Cutter 전)</option>
         <option value="Pouch Cutter">Pouch Cutter</option>
+        <option value="Heat Press1(Cutter 전)">Heat Press1(Cutter 전)</option>
         <option value="Heat Press2(90 Folding 전)">Heat Press2(90 Folding 전)</option>
         <option value="90 Folding">90 Folding</option>
         <option value="180 Folding">180 Folding</option>
@@ -350,7 +348,7 @@
 <script>
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxFi6dUEwcKAGrCR6fcrFi8aO1U38kIJaVX77gGBwy7ffbEA8heMPiNcbYWZptH58KR/exec";
 
-  let cachedHistoryData = []; // 가져온 전체 시트 데이터를 보관할 배열
+  let cachedHistoryData = []; 
 
   const defaultParts = [
     { value: "상도", text: "상도 (Upper Mold)" },
@@ -365,8 +363,10 @@
     { value: "Cutting Knife", text: "Cutting Knife" }
   ];
 
-  window.addEventListener('load', () => {
+  // 최초 로드시 라인 데이터 동적 생성 함수 정의
+  function initLineOptions() {
     const lineSelect = document.getElementById('line');
+    lineSelect.innerHTML = '<option value="">-- 라인을 선택하세요 / Select Line --</option>';
     for (let i = 1; i <= 6; i++) {
       for (let j = 1; j <= 2; j++) {
         const val = `${i}-${j}`;
@@ -376,13 +376,15 @@
         lineSelect.appendChild(option);
       }
     }
+  }
+
+  window.addEventListener('load', () => {
+    initLineOptions();
     updatePartOptions(defaultParts);
-    
-    // 백그라운드에서 전체 이력 미리 로드 호출
     loadHistoryFromServer();
   });
 
-  // 💡 모드 전환 (입력폼 <-> 이력조회) 스위칭 함수
+  // 모드 전환 스위칭 함수 (오류 복구 및 흐름 개선)
   function switchMode(mode) {
     document.getElementById('tab-input').classList.remove('active');
     document.getElementById('tab-view').classList.remove('active');
@@ -396,33 +398,37 @@
     } else if (mode === 'view') {
       document.getElementById('tab-view').classList.add('active');
       document.getElementById('section-view').style.display = 'block';
-      loadHistoryFromServer(); // 화면 넘길 때 데이터 갱신 리로드
+      loadHistoryFromServer(); 
     }
   }
 
-  // 구글 앱스크립트(Code.gs)로부터 전체 데이터 가져오기
+  // 구글 서버 이력 데이터 호출 (구글 미연동 로컬 브라우저 에러 팅김 방지 가드 장착)
   function loadHistoryFromServer() {
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-      google.script.run.withSuccessHandler(function(data) {
-        cachedHistoryData = data;
-        renderHistoryTable();
-      }).getFullHistory();
+    try {
+      if (typeof google !== 'undefined' && google.script && google.script.run) {
+        google.script.run.withSuccessHandler(function(data) {
+          cachedHistoryData = data;
+          renderHistoryTable();
+        }).getFullHistory();
+      } else {
+        // 로컬 파일 테스트 환경 대응용 알림
+        const tbody = document.getElementById('history-tbody');
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#e74c3c;">[로컬 가이드] Apps Script 웹앱 배포 환경에서만 실제 이력이 로드됩니다.</td></tr>';
+      }
+    } catch(e) {
+      console.log("Apps script 통신 호출 대기중...", e);
     }
   }
 
-  // 💡 가져온 데이터를 테이블 양식으로 렌더링 + 필터 처리
   function renderHistoryTable() {
     const filterUnit = document.getElementById('filter-unit').value;
     const tbody = document.getElementById('history-tbody');
     tbody.innerHTML = '';
 
     if (!cachedHistoryData || cachedHistoryData.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:#aaa;">기록된 이력이 없습니다.</td></tr>';
       return;
     }
 
-    // Apps script가 긁어온 스프레드시트 열 순서 매핑 정의 
-    // [0]:라인, [1]:유닛, [2]:변경자, [3]:변경유형, [4]:sub1, [5]:sub2, [6]:sub3, [7]:sub4, [8]:sub5 정의 기준 적용
     let filteredData = cachedHistoryData;
     if (filterUnit) {
       filteredData = cachedHistoryData.filter(row => row[1] === filterUnit);
@@ -433,7 +439,6 @@
       return;
     }
 
-    // 최신 등록 데이터가 위로 보이도록 역순(Reverse) 정렬 출력
     filteredData.slice().reverse().forEach(row => {
       const tr = document.createElement('tr');
       
@@ -442,7 +447,7 @@
       if (type === 'Temperature') {
         summaryText = `온도: ${row[4]} / 사유: ${row[5]}`;
       } else if (type === 'Servo Parameter') {
-        summaryText = `구분: ${row[4]} [${row[5]축}] | Part: ${row[6]} | 값: ${row[7]} / 사유: ${row[8]}`;
+        summaryText = `구분: ${row[4]} [${row[5]}축] | Part: ${row[6]} | 값: ${row[7]} / 사유: ${row[8]}`;
       } else if (type === 'Normal Parameter') {
         summaryText = `타입: ${row[4]} | 값: ${row[5]} / 사유: ${row[6]}`;
       } else {
@@ -478,6 +483,7 @@
 
   function updatePartOptions(optionsArray) {
     const partSelect = document.getElementById('servo-part');
+    if(!partSelect) return;
     partSelect.innerHTML = '<option value="">-- 선택 / Select --</option>';
     optionsArray.forEach(opt => {
       const option = document.createElement('option');
@@ -605,14 +611,17 @@
       statusDiv.style.color = "green";
       statusDiv.innerText = "✅ 업로드 및 클립보드 복사 완료! 메신저창에 붙여넣기 하세요.";
 
+      // 입력 데이터 안전하게 폼 초기화 (라인 데이터 소실 방지)
       document.getElementById('worker').value = '';
       document.getElementById('contentType').value = '';
       document.getElementById('unit').value = '';
       document.getElementById('servo-desc-input').value = '';
-      handleUnitChange();
+      
+      // 서브 섹션 UI 숨김 및 Part 셀렉트박스 리셋
+      updatePartOptions(defaultParts);
       toggleSubFields();
       
-      // 서버 데이터 동기화 리로드
+      // 실시간 데이터 리로드
       loadHistoryFromServer();
 
     } catch (error) {
