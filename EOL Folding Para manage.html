@@ -559,7 +559,7 @@
     }
   }
 
-  function renderHistoryTable() {
+function renderHistoryTable() {
     const filterLine = document.getElementById('filter-line').value;
     const filterUnit = document.getElementById('filter-unit').value;
     const filterAxis = document.getElementById('filter-axis').value;
@@ -573,32 +573,27 @@
       return;
     }
 
-    // 🛠️ 필터 및 데이터 분리 핵심 연산 알고리즘
+    // 🎯 [수정] 원본 데이터를 오염시키지 않고 순수하게 시트 열 데이터로만 필터링합니다.
     let filteredData = cachedHistoryData.filter(row => {
-      if (row.length < 3) return false;
+      if (row.length < 2) return false;
       
-      const rawBColumn = row[1] ? String(row[1]).trim() : '';
-      let lineVal = '';
-      
-      // 구분자 " || " 가 들어있거나 공백 구조 분해 적용하여 순수 라인명 확보
-      if (rawBColumn.includes(' || ')) {
-        lineVal = rawBColumn.split(' || ')[0].trim();
-      } else {
-        lineVal = rawBColumn.split(' ')[0].trim();
-      }
-      
-      // 🎯 정확한 순수 라인 필터 비교 검증 수행
+      // 시트 B열(인덱스 1)은 순수 라인 정보 ("5-1", "5-2" 등)
+      const lineVal = row[1] ? String(row[1]).trim() : '';
       const matchLine = filterLine ? (lineVal === filterLine) : true;
       
+      // 시트 C열(인덱스 2) 유닛 정보
       const unitVal = row[2] ? String(row[2]).trim() : '';
       const matchUnit = filterUnit ? (unitVal === filterUnit) : true;
       
+      // 시트 E열(인덱스 4) 유형 및 G열(인덱스 6) 축 정보
       const contentType = row[4] || '';
       const axisVal = contentType === 'Servo Parameter' ? (row[6] ? String(row[6]).trim() : '') : '';
-      const partVal = contentType === 'Servo Parameter' ? (row[5] || '') : (row[5] || '');
-      
       const matchAxis = filterAxis ? (axisVal === filterAxis) : true;
-      const matchPart = filterPart ? (String(partVal).toLowerCase().includes(filterPart)) : true;
+      
+      // 시트 F열(인덱스 5) 또는 H열(인덱스 7) 파트 정보 검색
+      const colF = row[5] ? String(row[5]).toLowerCase() : '';
+      const colH = row[7] ? String(row[7]).toLowerCase() : '';
+      const matchPart = filterPart ? (colF.includes(filterPart) || colH.includes(filterPart)) : true;
       
       return matchLine && matchUnit && matchAxis && matchPart;
     });
@@ -608,35 +603,35 @@
       return;
     }
     
-filteredData.slice().reverse().forEach(row => {
+    // 역순 정렬하여 최신 이력이 위로 오게 표기
+    filteredData.slice().reverse().forEach(row => {
       const tr = document.createElement('tr');
       
-      // 🛠️ [여기서부터 수정] 배열 인덱스를 정확하게 매핑합니다.
-      const rawTime = row[0] || '';         // A열: 변경 일자 데이터
-      const lineData = row[1] || '';        // B열: 순수 라인 명 데이터
-      const unitData = row[2] || '';        // C열: 유닛 명
+      // 📊 구글 스프레드시트와 1:1 매핑 (A열=0, B열=1, C열=2 ...)
+      const rawTime = row[0] || '';         // A열: 변경시점
+      const lineData = row[1] || '';        // B열: 라인
+      const unitData = row[2] || '';        // C열: Unit
       const workerData = row[3] || '';      // D열: 변경자
-      const contentType = row[4] || '';     // E열: 유형
+      const contentType = row[4] || '';     // E열: 변경내용(대분류)
       
-      const colF = row[5] || '';            // F열: 세부1
-      const colG = row[6] || '';            // G열: 세부2 (축)
-      const colH = row[7] || '';            // H열: 세부3 (파트)
+      const colF = row[5] || '';            // F열: 변경내용1
+      const colG = row[6] || '';            // G열: 변경내용2 (축)
+      const colH = row[7] || '';            // H열: 변경내용3 (파트 서브)
       const colI = row[8] || '';            // I열: 변경 값
       const colJ = row[9] || '';            // J열: 변경 사유
-      // 🛠️ [여기까지만 수정]
 
-      // 💡 ISO 타임스탬프 문자를 yyyy-MM-dd HH:mm 포맷으로 이쁘게 정제
+      // 💡 시간 데이터 포맷팅
       let displayTime = "-";
       if (rawTime) {
         const strTime = String(rawTime);
         if (strTime.includes("T")) {
-          // "2026-05-01T04:00:00.000Z" -> "2026-05-01 04:00" 형태로 파싱
           displayTime = strTime.replace("T", " ").substring(0, 16);
         } else {
           displayTime = strTime.substring(0, 16);
         }
       }
 
+      // 변경자 / 요청자 정제
       let personDisplay = workerData;
       if (workerData.includes(" - 요청: ")) {
         const parts = workerData.split(" - 요청: ");
@@ -646,6 +641,7 @@ filteredData.slice().reverse().forEach(row => {
       let displayAxis = "-";
       let displayPart = "";
 
+      // 유형별 파트 구조 렌더링
       if (contentType === 'Servo Parameter') {
         displayAxis = `<strong style="color:#2c3e50;">${colG}</strong>`;
         displayPart = `<span style="font-weight:500;">${colF}</span><br><span style="font-size:11px; color:#64748b;">${colH}</span>`;
@@ -657,7 +653,7 @@ filteredData.slice().reverse().forEach(row => {
         displayPart = colF;
       }
 
-      // 🛠️ 분리된 데이터를 테이블 구조에 순서대로 대입 (변경일자, 라인 독립 표기)
+      // 각 열에 순서대로 독립 대입 (B열 데이터는 무조건 라인 칸에만 들어감)
       tr.innerHTML = `
         <td style="color:#475569; font-size:12px;">${displayTime}</td>
         <td style="text-align:center; font-weight:bold;">${lineData}</td>
