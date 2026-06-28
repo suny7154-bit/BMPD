@@ -607,38 +607,33 @@
       tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#aaa;">조건에 일치하는 이력이 없습니다.</td></tr>';
       return;
     }
-
-    filteredData.slice().reverse().forEach(row => {
+    
+filteredData.slice().reverse().forEach(row => {
       const tr = document.createElement('tr');
       
-      const rawBColumn = row[1] || '';        
-      const unitData = row[2] || '';        
-      const workerData = row[3] || '';      
-      const contentType = row[4] || '';     
+      // 🛠️ [여기서부터 수정] 배열 인덱스를 정확하게 매핑합니다.
+      const rawTime = row[0] || '';         // A열: 변경 일자 데이터
+      const lineData = row[1] || '';        // B열: 순수 라인 명 데이터
+      const unitData = row[2] || '';        // C열: 유닛 명
+      const workerData = row[3] || '';      // D열: 변경자
+      const contentType = row[4] || '';     // E열: 유형
       
-      const colF = row[5] || '';            
-      const colG = row[6] || '';            
-      const colH = row[7] || '';            
-      const colI = row[8] || '';            
-      const colJ = row[9] || '';            
+      const colF = row[5] || '';            // F열: 세부1
+      const colG = row[6] || '';            // G열: 세부2 (축)
+      const colH = row[7] || '';            // H열: 세부3 (파트)
+      const colI = row[8] || '';            // I열: 변경 값
+      const colJ = row[9] || '';            // J열: 변경 사유
+      // 🛠️ [여기까지만 수정]
 
-      // 데이터 가공 분리 및 시간 분/시 정제 (초 단위 절사 분해 연산)
-      let displayLine = rawBColumn;
+      // 💡 ISO 타임스탬프 문자를 yyyy-MM-dd HH:mm 포맷으로 이쁘게 정제
       let displayTime = "-";
-
-      if (rawBColumn.includes(' || ')) {
-        var partsArr = rawBColumn.split(' || ');
-        displayLine = partsArr[0].trim();
-        displayTime = partsArr[1].trim(); 
-      } else if (rawBColumn.includes(' ')) {
-        var firstSpaceIdx = rawBColumn.indexOf(' ');
-        displayLine = rawBColumn.substring(0, firstSpaceIdx).trim();
-        var rawTime = rawBColumn.substring(firstSpaceIdx + 1).trim();
-        // 시:분 데이터까지만 자르기 (yyyy-MM-dd HH:mm 구조)
-        if(rawTime.length >= 16) {
-          displayTime = rawTime.substring(0, 16);
+      if (rawTime) {
+        const strTime = String(rawTime);
+        if (strTime.includes("T")) {
+          // "2026-05-01T04:00:00.000Z" -> "2026-05-01 04:00" 형태로 파싱
+          displayTime = strTime.replace("T", " ").substring(0, 16);
         } else {
-          displayTime = rawTime;
+          displayTime = strTime.substring(0, 16);
         }
       }
 
@@ -662,10 +657,10 @@
         displayPart = colF;
       }
 
-      // 🛠️ 변경 일자와 라인이 깔끔하게 분리되어 9개 열로 표출되도록 드로잉 바인딩
+      // 🛠️ 분리된 데이터를 테이블 구조에 순서대로 대입 (변경일자, 라인 독립 표기)
       tr.innerHTML = `
         <td style="color:#475569; font-size:12px;">${displayTime}</td>
-        <td style="text-align:center; font-weight:bold;">${displayLine}</td>
+        <td style="text-align:center; font-weight:bold;">${lineData}</td>
         <td><strong>${unitData}</strong></td>
         <td>${personDisplay}</td>
         <td><span style="font-size:11px; padding:2px 5px; background:#f1f5f9; border-radius:4px; color:#475569;">${contentType.replace(" Parameter","")}</span></td>
@@ -676,7 +671,6 @@
       `;
       tbody.appendChild(tr);
     });
-  }
 
   function checkCommonApplyVisibility() {
     const unit = document.getElementById('unit').value;
