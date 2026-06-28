@@ -198,7 +198,6 @@
       font-size: 13px;
     }
 
-    /* 📊 테이블 버그 수정 본체 */
     .table-wrapper {
       overflow-x: auto;
       margin-top: 15px;
@@ -235,15 +234,16 @@
       background-color: #fcfcfc;
     }
     
-    th:nth-child(1) { width: 130px; } 
-    th:nth-child(2) { width: 70px; }  
-    th:nth-child(3) { width: 160px; } 
-    th:nth-child(4) { width: 140px; } 
-    th:nth-child(5) { width: 80px; }  
-    th:nth-child(6) { width: 55px; }  
-    th:nth-child(7) { width: 160px; } 
-    th:nth-child(8) { width: 90px; }  
-    th:nth-child(9) { width: 170px; } 
+    /* 열 너비 균형 조정 */
+    th:nth-child(1) { width: 80px; }  /* 라인 */
+    th:nth-child(2) { width: 140px; } /* 변경 일자 */
+    th:nth-child(3) { width: 160px; } /* 유닛 */
+    th:nth-child(4) { width: 140px; } /* 변경자 */
+    th:nth-child(5) { width: 80px; }  /* 유형 */
+    th:nth-child(6) { width: 55px; }  /* 축 */
+    th:nth-child(7) { width: 160px; } /* 파트 정보 */
+    th:nth-child(8) { width: 90px; }  /* 변경 값 */
+    th:nth-child(9) { width: 170px; } /* 변경 사유 */
   </style>
 </head>
 <body>
@@ -455,8 +455,9 @@
       <table>
         <thead>
           <tr>
-            <th>변경 일자</th>
+            <!-- 요구사항 반영하여 헤더명 위치 교정 -->
             <th>라인</th>
+            <th>변경 일자</th>
             <th>유닛</th>
             <th>변경자 (요청자)</th>
             <th>유형</th>
@@ -579,8 +580,29 @@
     cachedHistoryData.forEach(row => {
       if (row.length < 2) return;
 
-      let realTime = row[0] ? String(row[0]).trim() : '';
-      let realLine = row[1] ? String(row[1]).trim() : '';
+      // 시트 데이터 매핑 순서 재정의 (구글 시트의 첫 번째 열[0]이 라인 번호, 두 번째 열[1]이 실제 날짜임)
+      let rawLineData = row[0] ? String(row[0]).trim() : '';
+      let rawTimeData = row[1] ? String(row[1]).trim() : '';
+      
+      let realLine = rawLineData;
+      let realTime = rawTimeData;
+
+      // 만약 시트에서 순서가 혼선되어 들어왔을 경우를 처리하는 안전 장치
+      if (rawLineData.includes('T') || rawLineData.includes('Z') || (rawLineData.includes('-') && rawLineData.length > 10)) {
+        realTime = rawLineData;
+        realLine = rawTimeData;
+      }
+
+      // 라인 번호 포맷 보정: 날짜 객체로 강제 변환되어 '2026-05-01' 등으로 왜곡된 문자열을 '5-1' 순수한 텍스트 형태로 복구
+      if (realLine.startsWith("2026-0") || realLine.startsWith("2025-0")) {
+        const parts = realLine.split('-');
+        if (parts.length >= 3) {
+          const month = parseInt(parts[1], 10);
+          const day = parseInt(parts[2], 10);
+          realLine = `${month}-${day}`; // 예: "2026-05-02" -> "5-2"로 완벽 원복
+        }
+      }
+
       let realUnit = row[2] ? String(row[2]).trim() : '';
       let realWorker = row[3] ? String(row[3]).trim() : '';
       let realType = row[4] ? String(row[4]).trim() : '';
@@ -589,24 +611,6 @@
       let realColH = row[7] ? String(row[7]).trim() : '';
       let realColI = row[8] ? String(row[8]).trim() : '';
       let realColJ = row[9] ? String(row[9]).trim() : '';
-
-      if (realLine.includes('T') || realLine.includes('Z') || (realLine.includes('-') && realLine.length > 10)) {
-        let temp = realTime;
-        realTime = realLine;
-        if (realWorker === 'Servo' || realWorker === 'Temperature' || realWorker === 'Normal Parameter') {
-          realLine = "-"; 
-          realUnit = row[1] ? String(row[1]).trim() : '';
-          realWorker = row[2] ? String(row[2]).trim() : '';
-          realType = row[3] ? String(row[3]).trim() : '';
-          realColF = row[4] ? String(row[4]).trim() : '';
-          realColG = row[5] ? String(row[5]).trim() : '';
-          realColH = row[6] ? String(row[6]).trim() : '';
-          realColI = row[7] ? String(row[7]).trim() : '';
-          realColJ = row[8] ? String(row[8]).trim() : '';
-        } else {
-          realLine = temp; 
-        }
-      }
 
       if (realUnit === 'Servo' || realUnit === 'Temperature') {
         realType = realUnit;
@@ -619,7 +623,6 @@
       
       const axisVal = realType === 'Servo Parameter' || realType === 'Servo' ? realColG : '';
       const matchAxis = filterAxis ? (axisVal === filterAxis) : true;
-      
       const matchPart = filterPart ? (realColF.toLowerCase().includes(filterPart) || realColH.toLowerCase().includes(filterPart)) : true;
       
       if (matchLine && matchUnit && matchAxis && matchPart) {
@@ -640,11 +643,7 @@
       
       let displayTime = "-";
       if (item.time) {
-        if (item.time.includes("T")) {
-          displayTime = item.time.replace("T", " ").substring(0, 16);
-        } else {
-          displayTime = item.time.substring(0, 16);
-        }
+        displayTime = item.time.includes("T") ? item.time.replace("T", " ").substring(0, 16) : item.time.substring(0, 16);
       }
 
       let personDisplay = item.worker;
@@ -667,9 +666,10 @@
         displayPart = item.f;
       }
 
+      // UI상의 열 순서 최종 조립: [라인] -> [변경 일자] 순으로 매핑 완료
       tr.innerHTML = `
+        <td style="text-align:center; font-weight:bold; color:#1e293b;">${item.line}</td>
         <td style="color:#475569; font-size:12px;">${displayTime}</td>
-        <td style="text-align:center; font-weight:bold;">${item.line}</td>
         <td><strong>${item.unit}</strong></td>
         <td>${personDisplay}</td>
         <td><span style="font-size:11px; padding:2px 5px; background:#f1f5f9; border-radius:4px; color:#475569;">${item.type.replace(" Parameter","")}</span></td>
