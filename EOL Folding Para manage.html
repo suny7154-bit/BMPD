@@ -326,7 +326,8 @@
       <h3>🌡️ Temperature 세부 정보 (Details)</h3>
       <div class="form-group">
         <label for="temp-val">변경내용1 - 온도 (Value - Temperature)</label>
-        <input type="text" id="temp-val" placeholder="설정 온도를 입력하세요 / Enter temperature value" />
+        <span class="notice-text">&lt;HMI 상의 값을 그대로 입력하세요. / Enter the value exactly as shown on the HMI.&gt;</span>
+        <input type="text" id="temp-val" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');" placeholder="숫자만 입력 가능 / Numbers only" />
       </div>
       <div class="form-group" id="temp-sub-wrapper" style="display: none;">
         <label for="temp-sub-select">변경내용 sub - 파트 정보 (Part Detail)</label>
@@ -502,12 +503,10 @@
 </div>
 
 <script>
-  // Web App API Deployment URL for Google Apps Script
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrxmEaLIIPE5KeAyeUZhQQoqepJ-zh8mumVaaEcOFE19UpOanKyhvxetfHpvR2Nk_L/exec";
 
   let cachedHistoryData = []; 
 
-  // Default parts data array (Updated: "Mold" changed to "Knife")
   const defaultParts = [
     { value: "상도", text: "상도 (Upper Knife)" },
     { value: "하도", text: "하도 (Lower Knife)" },
@@ -515,14 +514,12 @@
     { value: "유닛 전체(얼라인)", text: "유닛 전체/얼라인 (Total Unit / Align)" }
   ];
 
-  // Specific parts configuration array for Taping Units
   const tapingParts = [
     { value: "Feeding Gripper", text: "Feeding Gripper" },
     { value: "Attacher Jig", text: "Attacher Jig" },
     { value: "Cutting Knife", text: "Cutting Knife" }
   ];
 
-  // Initialize Line Selection options dynamically (Format: e.g., 1-1, 1-2)
   function initLineOptions() {
     const lineSelect = document.getElementById('line');
     const filterLineSelect = document.getElementById('filter-line');
@@ -542,14 +539,12 @@
     }
   }
 
-  // Window load event handler initialization
   window.addEventListener('load', () => {
     initLineOptions();
     updatePartOptions(defaultParts);
     checkCommonApplyVisibility();
   });
 
-  // Tab switching interface handler mode toggle
   function switchMode(mode) {
     document.getElementById('tab-input').classList.remove('active');
     document.getElementById('tab-view').classList.remove('active');
@@ -566,7 +561,6 @@
     }
   }
 
-  // Async server fetch handler for parameter log history
   async function loadHistoryFromServer() {
     const tbody = document.getElementById('history-tbody');
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#3498db; font-weight:bold;">⏳ 데이터를 불러오는 중입니다...</td></tr>';
@@ -590,7 +584,6 @@
     }
   }
 
-  // Render history data array matrix to front-end HTML table DOM
   function renderHistoryTable() {
     const filterLine = document.getElementById('filter-line').value;
     const filterUnit = document.getElementById('filter-unit').value;
@@ -686,7 +679,8 @@
         displayAxis = `<strong style="color:#2c3e50;">${item.g}</strong>`;
         displayPart = `<span style="font-weight:500;">${item.f}</span><br><span style="font-size:11px; color:#64748b;">${item.h}</span>`;
       } else if (item.type.includes('Temperature') || item.type.includes('온도')) {
-        displayPart = `<span style="color:#e11d48; font-weight:bold;">Temperature (온도)</span><br><span style="font-size:11px; color:#64748b;">${item.f || ''}</span>`;
+        // 이력창 테이블 표시부 보정
+        displayPart = `<span style="color:#e11d48; font-weight:bold;">Temperature (온도)</span><br><span style="font-size:11px; color:#64748b;">${item.h || ''}</span>`;
       } else if (item.type.includes('Pressure') || item.type.includes('압력')) {
         displayPart = `<span style="color:#9333ea; font-weight:bold;">Pressure (압력)</span>`;
       } else if (item.type.includes('Normal')) {
@@ -710,7 +704,6 @@
     });
   }
 
-  // Check visibility for the simultaneous A/B common unit matching block
   function checkCommonApplyVisibility() {
     const unit = document.getElementById('unit').value;
     const wrapper = document.getElementById('common-apply-wrapper');
@@ -732,7 +725,6 @@
     }
   }
 
-  // Get matching counter-part symmetric workspace unit designation string
   function getCounterpartUnit(currentUnit) {
     const mapping = {
       "Heat Press3A(270 Folding 전)": "Heat Press3B(270 Folding 전)",
@@ -749,7 +741,6 @@
     return mapping[currentUnit] || null;
   }
 
-  // Handle master main UI core selection modifications for Unit parameter inputs
   function handleUnitChange() {
     const unit = document.getElementById('unit').value;
     const descSelect = document.getElementById('servo-desc-select');
@@ -769,7 +760,6 @@
     updateServoSubOptions(); 
   }
 
-  // Update selection component parameters options array layout elements
   function updatePartOptions(optionsArray) {
     const partSelect = document.getElementById('servo-part');
     if(!partSelect) return;
@@ -782,7 +772,6 @@
     });
   }
 
-  // Dynamic mapping for Temperature Sub Options (Structure update)
   function updateTemperatureSubOptions() {
     const unit = document.getElementById('unit').value;
     const wrapper = document.getElementById('temp-sub-wrapper');
@@ -794,7 +783,6 @@
     }
 
     let options = [];
-    // 🛠️ 90 Folding 및 270 Folding 유닛 조건일 때 상도, 하도, Punch 옵션이 통합 표시되도록 수정
     if (unit.startsWith("Heat Press") || unit === "180 Folding") {
       options = ["상도", "하도"];
     } else if (unit === "90 Folding" || unit.includes("270 Folding")) {
@@ -817,8 +805,6 @@
     }
   }
 
-  // Structural condition logic linkage handling code for Servo Sub Options
-  // Maps Unit - Part - Axis parameter scenarios to exact drop-down options
   function updateServoSubOptions() {
     const unit = document.getElementById('unit').value;
     const axis = document.getElementById('servo-axis').value;
@@ -832,32 +818,25 @@
     
     const isFoldingUnit = (unit === "90 Folding" || unit.includes("270 Folding"));
     
-    // Case A: 90/270 Folding - 상도 (Upper Knife) - Z
     if (isFoldingUnit && part === "상도" && axis === "Z") {
       addOptions(descSelect, ["1차 하강위치", "2차 하강위치", "대기위치"]);
     } 
-    // Case B: 90/270 Folding - 하도 (Lower Knife) - Z
     else if (isFoldingUnit && part === "하도" && axis === "Z") {
       addOptions(descSelect, ["상승위치", "대기위치"]);
     } 
-    // Case C: 90/270 Folding - 펀치 (Punch) - Y -> Hard-locked to 대기위치(고정)
     else if (isFoldingUnit && part === "펀치" && axis === "Y") {
       addOptions(descSelect, ["대기위치(고정)"]);
       descSelect.value = "대기위치(고정)";
     } 
-    // Case D: 90/270 Folding - 유닛 전체(얼라인) - Y
     else if (isFoldingUnit && part === "유닛 전체(얼라인)" && axis === "Y") {
       addOptions(descSelect, ["대기위치", "Align 위치", "폴딩위치"]);
     } 
-    // 🛠️ Case D-2: 180 Folding - 유닛 전체(얼라인) - Y 조건 추가 신설
     else if (unit === "180 Folding" && part === "유닛 전체(얼라인)" && axis === "Y") {
       addOptions(descSelect, ["대기위치", "Align 위치", "폴딩위치"]);
     }
-    // Case E: Pouch Cutter (Pouch Cutting) - 상도 (Upper Knife) - Z
     else if (unit === "Pouch Cutter" && part === "상도" && axis === "Z") {
       addOptions(descSelect, ["Cutting 위치", "대기위치"]);
     } 
-    // Default fallback parameter items
     else {
       addOptions(descSelect, ["대기 위치", "상승 위치", "하강 위치", "상승 속도", "하강 속도"]);
     }
@@ -871,7 +850,6 @@
     });
   }
 
-  // Toggle visible form fields segment depending on content selection types
   function toggleSubFields() {
     const contentType = document.getElementById('contentType').value;
     
@@ -893,7 +871,6 @@
     }
   }
 
-  // Clipboard copy handler fallback mechanism for older system browser runtime wrappers
   function fallbackCopyText(text) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
@@ -911,7 +888,6 @@
     document.body.removeChild(textArea);
   }
 
-  // Submit collected inputs to Google Sheet Endpoint via server fetch execution 
   async function submitData() {
     const statusDiv = document.getElementById('status');
     
@@ -941,24 +917,30 @@
     if(requester) clipboardText += `• 요청자(Requester): ${requester}\n`;
     clipboardText += `• 변경유형(Type): ${contentType}\n`;
 
+    // 🛠️ 엑셀 매핑 밀림 오류 현상 완벽 조치 파트 (Apps Script 시트 컬럼 1:1 디버깅)
     if (contentType === 'Temperature') {
-      sub1 = "Temperature";
-      sub2 = document.getElementById('temp-val').value;
       const tempSub = document.getElementById('temp-sub-select').value;
-      sub3 = document.getElementById('temp-reason').value;
-      
-      if(!sub2 || !sub3) { alert("세부 항목을 모두 입력해주세요."); return; }
-      
-      let partInfoText = tempSub ? ` [${tempSub}]` : "";
-      sub1 = "Temperature" + partInfoText; 
-      clipboardText += `• 온도(Temp): ${sub2}${partInfoText}\n• 변경 사유(Reason): ${sub3}`;
+      const tempVal = document.getElementById('temp-val').value;
+      const tempReason = document.getElementById('temp-reason').value;
+
+      if(!tempVal || !tempReason || !tempSub) { alert("세부 항목을 모두 입력해주세요."); return; }
+
+      sub1 = "Temperature";                       // E열: 변경내용1 (대분류 형태 고정)
+      sub2 = "";                                  // F열: 변경내용2 (공란 처리하여 축 정보와 매칭 해제)
+      sub3 = tempSub ? `${tempSub}` : "";         // G열: 변경내용3 (HMI 파트 표기란 [상도]/[하도]/[Punch])
+      sub4 = tempVal;                             // H열: 변경 값 (I열 입력 위치에 순수 온도 수치 매핑)
+      sub5 = tempReason;                          // I열: 변경 사유 (J열 입력 위치에 코멘트 스트링 매핑)
+
+      clipboardText += `• 온도(Temp): ${tempVal} [${tempSub}]\n• 변경 사유(Reason): ${tempReason}`;
     } 
     else if (contentType === 'Pressure') {
       sub1 = "Pressure";
-      sub2 = document.getElementById('press-val').value;
-      sub3 = document.getElementById('press-reason').value;
-      if(!sub2 || !sub3) { alert("세부 항목을 모두 입력해주세요."); return; }
-      clipboardText += `• 압력(Press): ${sub2}\n• 변경 사유(Reason): ${sub3}`;
+      sub2 = "";
+      sub3 = "Press 압력";
+      sub4 = document.getElementById('press-val').value;
+      sub5 = document.getElementById('press-reason').value;
+      if(!sub4 || !sub5) { alert("세부 항목을 모두 입력해주세요."); return; }
+      clipboardText += `• 압력(Press): ${sub4}\n• 변경 사유(Reason): ${sub5}`;
     }
     else if (contentType === 'Servo Parameter') {
       sub1 = document.getElementById('servo-type').value;
@@ -975,10 +957,12 @@
     } 
     else if (contentType === 'Normal Parameter') {
       sub1 = document.getElementById('normal-type').value;
-      sub2 = document.getElementById('normal-val').value;
-      sub3 = document.getElementById('normal-reason').value;
-      if(!sub1 || !sub2 || !sub3) { alert("세부 항목을 모두 입력해주세요."); return; }
-      clipboardText += `• 타입(Type): ${sub1}\n• 변경 값(Value): ${sub2}\n• 변경 사유(Reason): ${sub3}`;
+      sub2 = "";
+      sub3 = sub1;
+      sub4 = document.getElementById('normal-val').value;
+      sub5 = document.getElementById('normal-reason').value;
+      if(!sub1 || !sub4 || !sub5) { alert("세부 항목을 모두 입력해주세요."); return; }
+      clipboardText += `• 타입(Type): ${sub1}\n• 변경 값(Value): ${sub4}\n• 변경 사유(Reason): ${sub5}`;
     }
 
     statusDiv.style.color = "orange";
@@ -1010,7 +994,6 @@
       statusDiv.style.color = "green";
       statusDiv.innerText = "✅ 업로드 및 클립보드 복사 완료!";
 
-      // Form reset execution handling block
       document.getElementById('worker').value = '';
       document.getElementById('requester').value = '';
       document.getElementById('contentType').value = '';
