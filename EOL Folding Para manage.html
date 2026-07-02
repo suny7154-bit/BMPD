@@ -794,10 +794,11 @@
     }
 
     let options = [];
+    // 🛠️ 90 Folding 및 270 Folding 유닛 조건일 때 상도, 하도, Punch 옵션이 통합 표시되도록 수정
     if (unit.startsWith("Heat Press") || unit === "180 Folding") {
       options = ["상도", "하도"];
     } else if (unit === "90 Folding" || unit.includes("270 Folding")) {
-      options = ["Punch"];
+      options = ["상도", "하도", "Punch"];
     }
 
     if (options.length > 0) {
@@ -805,7 +806,6 @@
       options.forEach(opt => {
         const o = document.createElement('option');
         o.value = opt; 
-        // Sync display nomenclature: "Mold" to "Knife"
         let displayEng = opt === "상도" ? "Upper Knife" : (opt === "하도" ? "Lower Knife" : "Punch");
         o.textContent = `${opt} (${displayEng})`;
         select.appendChild(o);
@@ -849,6 +849,10 @@
     else if (isFoldingUnit && part === "유닛 전체(얼라인)" && axis === "Y") {
       addOptions(descSelect, ["대기위치", "Align 위치", "폴딩위치"]);
     } 
+    // 🛠️ Case D-2: 180 Folding - 유닛 전체(얼라인) - Y 조건 추가 신설
+    else if (unit === "180 Folding" && part === "유닛 전체(얼라인)" && axis === "Y") {
+      addOptions(descSelect, ["대기위치", "Align 위치", "폴딩위치"]);
+    }
     // Case E: Pouch Cutter (Pouch Cutting) - 상도 (Upper Knife) - Z
     else if (unit === "Pouch Cutter" && part === "상도" && axis === "Z") {
       addOptions(descSelect, ["Cutting 위치", "대기위치"]);
