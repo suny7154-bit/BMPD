@@ -462,7 +462,8 @@
 </div>
 
 <script>
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrxmEaLIIPE5KeAyeUZhQQoqepJ-zh8mumVaaEcOFE19UpOanKyhvxetfHpvR2Nk_L/exec";
+  // 💡 아래의 URL은 반드시 사용자님의 Apps Script 배포 URL로 교체해 주세요.
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycby-BsffYuaUIi5KF9yGvPZlJAjUah_rSLd7d3NKJWfJSf9Kilw7Q2uHmkmv26PBW0c/exec";
 
   let cachedHistoryData = []; 
   let currentTempParts = []; 
@@ -535,13 +536,13 @@
     if (type === 'temp') {
       innerHTML += `
         <div class="form-group">
+          <label>변경내용 sub - 파트 정보 (Part Detail)</label>
+          <select class="temp-sub-select"><option value="">-- 선택 / Select --</option></select>
+        </div>
+        <div class="form-group">
           <label>변경내용1 - 온도 (Value - Temperature)</label>
           <span class="notice-text">&lt;HMI 상의 값을 그대로 입력하세요. / Enter the value exactly as shown on the HMI.&gt;</span>
           <input type="text" class="temp-val" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*?)\\..*/g, '$1');" placeholder="숫자만 입력 가능 / Numbers only" />
-        </div>
-        <div class="form-group">
-          <label>변경내용 sub - 파트 정보 (Part Detail)</label>
-          <select class="temp-sub-select"><option value="">-- 선택 / Select --</option></select>
         </div>
         <div class="form-group">
           <label>변경내용2 - 변경 사유 (Reason for Change)</label>
@@ -570,17 +571,17 @@
           </select>
         </div>
         <div class="form-group">
-          <label>변경내용 2 - Part 정보 (Part Details)</label>
-          <select class="servo-part" onchange="updateServoSubOptionsDynamic(this)"><option value="">-- 선택 / Select --</option></select>
-        </div>
-        <div class="form-group">
-          <label>변경내용 3 - 축 정보 (Axis Information)</label>
+          <label>변경내용 2 - 축 정보 (Axis Information)</label>
           <select class="servo-axis" onchange="updateServoSubOptionsDynamic(this)">
             <option value="">-- 선택 / Select --</option>
             <option value="X">X</option>
             <option value="Y">Y</option>
             <option value="Z">Z</option>
           </select>
+        </div>
+        <div class="form-group">
+          <label>변경내용 3 - Part 정보 (Part Details)</label>
+          <select class="servo-part" onchange="updateServoSubOptionsDynamic(this)"><option value="">-- 선택 / Select --</option></select>
         </div>
         <div class="form-group">
           <label>변경내용 3 sub - 파라 설명 (Parameter Description)</label>
@@ -796,7 +797,23 @@
     }
   }
 
-  // ================= [데이터 전송 및 멀티 로우 자동 분할] =================
+  function getCounterpartUnit(currentUnit) {
+    const mapping = {
+      "Heat Press3A(270 Folding 전)": "Heat Press3B(270 Folding 전)",
+      "Heat Press3B(270 Folding 전)": "Heat Press3A(270 Folding 전)",
+      "270 Folding A": "270 Folding B",
+      "270 Folding B": "270 Folding A",
+      "Side Press A": "Side Press B",
+      "Side Press B": "Side Press A",
+      "Taping Unit A": "Taping Unit B",
+      "Taping Unit B": "Taping Unit A",
+      "Taping Press A": "Taping Press B",
+      "Taping Press B": "Taping Press A"
+    };
+    return mapping[currentUnit] || null;
+  }
+
+  // ================= [데이터 전송 및 멀티 로우 자동 분할 전송] =================
   async function submitData() {
     const statusDiv = document.getElementById('status');
     const line = document.getElementById('line').value;
@@ -825,6 +842,7 @@
 
     const partialPayloads = [];
 
+    // 💡 새로운 앱스크립트에 맞춰 모든 페이로드가 sub1, sub2, sub3 에 정확히 담기도록 설계되었습니다.
     if (contentType === 'Temperature') {
       const boxes = document.querySelectorAll('#temp-dynamic-container .dynamic-item-box');
       if (boxes.length === 0) { alert("추가된 파트 정보가 없습니다."); return; }
@@ -942,7 +960,7 @@
       statusDiv.innerText = "❌ 전송 오류가 발생했으나 클립보드는 복사되었습니다.";
     }
   }
-
+ㄱ
   function fallbackCopyText(text) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
