@@ -117,7 +117,7 @@
       color: #34495e;
       font-size: 14px;
     }
-    select, input[type="text"], textarea {
+    select, input, textarea {
       width: 100%;
       padding: 12px;
       border: 1px solid #ccc;
@@ -258,7 +258,6 @@
     <button id="tab-view" class="tab-btn" onclick="switchMode('view')">🔍 이력 조회 (History View)</button>
   </div>
 
-  <!-- ================= [1. 입력 폼 영역] ================= -->
   <div id="section-input">
     <div class="form-group">
       <label for="line">1. 라인 (Line)</label>
@@ -310,18 +309,23 @@
       <select id="contentType" onchange="toggleSubFields()">
         <option value="">-- 유형을 선택하세요 / Select Type --</option>
         <option value="Temperature">Temperature (온도)</option>
-        <option value="Pressure">Press 압력 (압력)</option> <!-- 🛠️ Press 압력 항목 추가 -->
+        <option value="Pressure">Press 압력 (압력)</option>
         <option value="Servo Parameter">Servo Parameter (서보 파라미터)</option>
         <option value="Normal Parameter">Normal Parameter (일반 파라미터)</option>
       </select>
     </div>
 
-    <!-- Temperature Section -->
     <div id="sec-temperature" class="sub-section">
       <h3>🌡️ Temperature 세부 정보 (Details)</h3>
       <div class="form-group">
         <label for="temp-val">변경내용1 - 온도 (Value - Temperature)</label>
         <input type="text" id="temp-val" placeholder="설정 온도를 입력하세요 / Enter temperature value" />
+      </div>
+      <div class="form-group" id="temp-sub-wrapper" style="display: none;">
+        <label for="temp-sub-select">변경내용 sub - 파트 정보 (Part Detail)</label>
+        <select id="temp-sub-select">
+          <option value="">-- 선택 / Select --</option>
+        </select>
       </div>
       <div class="form-group">
         <label for="temp-reason">변경내용2 - 변경 사유 (Reason for Change)</label>
@@ -329,7 +333,6 @@
       </div>
     </div>
 
-    <!-- 🛠️ Press Pressure Section 추가 -->
     <div id="sec-pressure" class="sub-section">
       <h3>📉 Press 압력 세부 정보 (Details)</h3>
       <div class="form-group">
@@ -342,7 +345,6 @@
       </div>
     </div>
 
-    <!-- Servo Parameter Section -->
     <div id="sec-servo" class="sub-section">
       <h3>⚙️ Servo Parameter 세부 정보 (Details)</h3>
       <div class="form-group">
@@ -355,7 +357,7 @@
       </div>
       <div class="form-group">
         <label for="servo-axis">변경내용 2 - 축 정보 (Axis Information)</label>
-        <select id="servo-axis">
+        <select id="servo-axis" onchange="updateServoSubOptions()">
           <option value="">-- 선택 / Select --</option>
           <option value="X">X</option>
           <option value="Y">Y</option>
@@ -364,7 +366,7 @@
       </div>
       <div class="form-group">
         <label for="servo-part">변경내용 3 - Part 정보 (Part Details)</label>
-        <select id="servo-part">
+        <select id="servo-part" onchange="updateServoSubOptions()">
           <option value="">-- 선택 / Select --</option>
         </select>
       </div>
@@ -384,7 +386,7 @@
 
       <div class="form-group">
         <label for="servo-val">변경내용 4 - 변경 값 (Change Value)</label>
-        <input type="text" id="servo-val" placeholder="변경 수치를 입력하세요 / Enter change value" />
+        <input type="number" step="any" id="servo-val" placeholder="변경 수치를 입력하세요 / Enter change value" />
       </div>
       <div class="form-group">
         <label for="servo-reason">변경내용 5 - 변경 사유 (Reason for Change)</label>
@@ -392,7 +394,6 @@
       </div>
     </div>
 
-    <!-- Normal Parameter Section -->
     <div id="sec-normal" class="sub-section">
       <h3>📄 Normal Parameter 세부 정보 (Details)</h3>
       <div class="form-group">
@@ -416,7 +417,6 @@
     <button class="button" onclick="submitData()">업로드 + 자동 클립보드 복사 (Upload & Copy)</button>
   </div>
 
-  <!-- ================= [2. 이력 조회 영역] ================= -->
   <div id="section-view" style="display: none;">
     
     <button class="fetch-btn" onclick="loadHistoryFromServer()">🔄 이력 불러오기 (Fetch Data)</button>
@@ -664,12 +664,11 @@
       let displayAxis = "-";
       let displayPart = "";
 
-      // 🛠️ 이력 테이블 렌더링에 Pressure(압력) 조건 분기 추가
       if (item.type.includes('Servo')) {
         displayAxis = `<strong style="color:#2c3e50;">${item.g}</strong>`;
         displayPart = `<span style="font-weight:500;">${item.f}</span><br><span style="font-size:11px; color:#64748b;">${item.h}</span>`;
       } else if (item.type.includes('Temperature') || item.type.includes('온도')) {
-        displayPart = `<span style="color:#e11d48; font-weight:bold;">Temperature (온도)</span>`;
+        displayPart = `<span style="color:#e11d48; font-weight:bold;">Temperature (온도)</span><br><span style="font-size:11px; color:#64748b;">${item.f || ''}</span>`;
       } else if (item.type.includes('Pressure') || item.type.includes('압력')) {
         displayPart = `<span style="color:#9333ea; font-weight:bold;">Pressure (압력)</span>`;
       } else if (item.type.includes('Normal')) {
@@ -745,6 +744,8 @@
       descInput.style.display = 'none';
     }
     checkCommonApplyVisibility();
+    updateTemperatureSubOptions(); 
+    updateServoSubOptions(); 
   }
 
   function updatePartOptions(optionsArray) {
@@ -759,20 +760,103 @@
     });
   }
 
+  // 🛠️ 1. 온도 조건 매핑 (추가 신설 구조 처리)
+  function updateTemperatureSubOptions() {
+    const unit = document.getElementById('unit').value;
+    const wrapper = document.getElementById('temp-sub-wrapper');
+    const select = document.getElementById('temp-sub-select');
+    
+    if (!unit) {
+      wrapper.style.display = "none";
+      return;
+    }
+
+    let options = [];
+    if (unit.startsWith("Heat Press") || unit === "180 Folding") {
+      options = ["상도", "하도"];
+    } else if (unit === "90 Folding" || unit.includes("270 Folding")) {
+      options = ["Punch"];
+    }
+
+    if (options.length > 0) {
+      select.innerHTML = '<option value="">-- 선택 / Select --</option>';
+      options.forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt; o.textContent = opt;
+        select.appendChild(o);
+      });
+      wrapper.style.display = "block";
+    } else {
+      wrapper.style.display = "none";
+      select.innerHTML = '<option value="">-- 선택 / Select --</option>';
+    }
+  }
+
+  // 🛠️ 2. 서보 조건 구조적 매핑 묶음 처리 로직
+  function updateServoSubOptions() {
+    const unit = document.getElementById('unit').value;
+    const axis = document.getElementById('servo-axis').value;
+    const part = document.getElementById('servo-part').value;
+    const descSelect = document.getElementById('servo-desc-select');
+    const descInput = document.getElementById('servo-desc-input');
+
+    if (unit.startsWith('Taping Unit')) return; 
+
+    descSelect.innerHTML = '<option value="">-- 선택 / Select --</option>';
+    
+    const isFoldingUnit = (unit === "90 Folding" || unit.includes("270 Folding"));
+    
+    // Case A: 90/270 Folding - 상도 - Z
+    if (isFoldingUnit && part === "상도" && axis === "Z") {
+      addOptions(descSelect, ["1차 하강위치", "2차 하강위치", "대기위치"]);
+    } 
+    // Case B: 90/270 Folding - 하도 - Z
+    else if (isFoldingUnit && part === "하도" && axis === "Z") {
+      addOptions(descSelect, ["상승위치", "대기위치"]);
+    } 
+    // Case C: 90/270 Folding - 펀치 - Y (대기위치 고정 및 자동 선택)
+    else if (isFoldingUnit && part === "펀치" && axis === "Y") {
+      addOptions(descSelect, ["대기위치(고정)"]);
+      descSelect.value = "대기위치(고정)";
+    } 
+    // Case D: 90/270 Folding - 유닛 전체(얼라인) - Y
+    else if (isFoldingUnit && part === "유닛 전체(얼라인)" && axis === "Y") {
+      addOptions(descSelect, ["대기위치", "Align 위치", "폴딩위치"]);
+    } 
+    // Case E: Pouch Cutter (Pouch Cutting) - 상도 - Z
+    else if (unit === "Pouch Cutter" && part === "상도" && axis === "Z") {
+      addOptions(descSelect, ["Cutting 위치", "대기위치"]);
+    } 
+    // 디폴트 파라미터 리스트 로드
+    else {
+      addOptions(descSelect, ["대기 위치", "상승 위치", "하강 위치", "상승 속도", "하강 속도"]);
+    }
+  }
+
+  function addOptions(selectElement, itemsArray) {
+    itemsArray.forEach(item => {
+      const o = document.createElement('option');
+      o.value = item; o.textContent = item;
+      selectElement.appendChild(o);
+    });
+  }
+
   function toggleSubFields() {
     const contentType = document.getElementById('contentType').value;
     
     document.getElementById('sec-temperature').style.display = 'none';
-    document.getElementById('sec-pressure').style.display = 'none'; // 🛠️ 리셋용
+    document.getElementById('sec-pressure').style.display = 'none'; 
     document.getElementById('sec-servo').style.display = 'none';
     document.getElementById('sec-normal').style.display = 'none';
 
     if (contentType === 'Temperature') {
       document.getElementById('sec-temperature').style.display = 'block';
+      updateTemperatureSubOptions();
     } else if (contentType === 'Pressure') {
-      document.getElementById('sec-pressure').style.display = 'block'; // 🛠️ 열기
+      document.getElementById('sec-pressure').style.display = 'block'; 
     } else if (contentType === 'Servo Parameter') {
       document.getElementById('sec-servo').style.display = 'block';
+      updateServoSubOptions();
     } else if (contentType === 'Normal Parameter') {
       document.getElementById('sec-normal').style.display = 'block';
     }
@@ -827,11 +911,15 @@
     if (contentType === 'Temperature') {
       sub1 = "Temperature";
       sub2 = document.getElementById('temp-val').value;
+      const tempSub = document.getElementById('temp-sub-select').value;
       sub3 = document.getElementById('temp-reason').value;
+      
       if(!sub2 || !sub3) { alert("세부 항목을 모두 입력해주세요."); return; }
-      clipboardText += `• 온도(Temp): ${sub2}\n• 변경 사유(Reason): ${sub3}`;
+      
+      let partInfoText = tempSub ? ` [${tempSub}]` : "";
+      sub1 = "Temperature" + partInfoText; 
+      clipboardText += `• 온도(Temp): ${sub2}${partInfoText}\n• 변경 사유(Reason): ${sub3}`;
     } 
-    // 🛠️ 데이터 전송 및 클립보드 문자열에 Pressure(압력) 데이터 바인딩 추가
     else if (contentType === 'Pressure') {
       sub1 = "Pressure";
       sub2 = document.getElementById('press-val').value;
@@ -864,7 +952,6 @@
     statusDiv.innerText = "⏳ 데이터 전송 중... (Sending data...)";
 
     const payloads = [];
-    // 🛠️ 페이로드 조립 시 sub1=Pressure, sub2=압력값, sub3=이유 순으로 매핑하여 전달 (Apps Script단 호환성 극대화)
     payloads.push({ line: line, unit: unit, worker: combinedWorker, contentType: contentType, sub1: sub1, sub2: sub2, sub3: sub3, sub4: sub4, sub5: sub5 });
 
     if (isCommonApply && getCounterpartUnit(unit)) {
@@ -896,9 +983,12 @@
       document.getElementById('unit').value = '';
       document.getElementById('common-apply').checked = false;
       
-      // 🛠️ 입력창 초기화 리스트에 압력 폼 엘리먼트 클렌징 추가
       document.getElementById('press-val').value = '';
       document.getElementById('press-reason').value = '';
+      document.getElementById('temp-val').value = '';
+      document.getElementById('temp-reason').value = '';
+      document.getElementById('servo-val').value = '';
+      document.getElementById('servo-reason').value = '';
       
       updatePartOptions(defaultParts);
       toggleSubFields();
