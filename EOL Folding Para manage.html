@@ -110,6 +110,45 @@
       border-left: 4px solid #4a4a4a;
       padding-left: 8px;
     }
+    .dynamic-item-box {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      position: relative;
+    }
+    .remove-btn {
+      position: absolute;
+      top: 12px;
+      right: 15px;
+      background-color: #ef4444;
+      color: white;
+      border: none;
+      padding: 4px 10px;
+      font-size: 11px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .remove-btn:hover {
+      background-color: #dc2626;
+    }
+    .add-more-btn {
+      background-color: #475569;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      font-size: 13px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 10px;
+      transition: background-color 0.2s;
+    }
+    .add-more-btn:hover {
+      background-color: #334155;
+    }
     label {
       display: block;
       margin-bottom: 8px;
@@ -297,7 +336,7 @@
 
     <div class="checkbox-group" id="common-apply-wrapper">
       <input type="checkbox" id="common-apply" />
-      <label for="common-apply"><strong>🔄 A/B 공통 적용</strong> (선택 시 반대편 유닛도 행 자동 생성 및 동시 업로드)</label>
+      <label for="common-apply"><strong>🔄 A/B 공통 적용</strong> (선택 시 반대편 유닛도 행 자동 생성 및 동시 업로드 / Simultaneous Upload to Counterpart)</label>
     </div>
 
     <div class="form-row">
@@ -324,105 +363,26 @@
 
     <div id="sec-temperature" class="sub-section">
       <h3>🌡️ Temperature 세부 정보 (Details)</h3>
-      <div class="form-group">
-        <label for="temp-val">변경내용1 - 온도 (Value - Temperature)</label>
-        <span class="notice-text">&lt;HMI 상의 값을 그대로 입력하세요. / Enter the value exactly as shown on the HMI.&gt;</span>
-        <input type="text" id="temp-val" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');" placeholder="숫자만 입력 가능 / Numbers only" />
-      </div>
-      <div class="form-group" id="temp-sub-wrapper" style="display: none;">
-        <label for="temp-sub-select">변경내용 sub - 파트 정보 (Part Detail)</label>
-        <select id="temp-sub-select">
-          <option value="">-- 선택 / Select --</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="temp-reason">변경내용2 - 변경 사유 (Reason for Change)</label>
-        <textarea id="temp-reason" placeholder="변경 사유를 입력하세요 / Enter reason for change"></textarea>
-      </div>
+      <button class="add-more-btn" onclick="addDynamicItem('temp')">➕ Part 추가 (Add Part)</button>
+      <div id="temp-dynamic-container"></div>
     </div>
 
     <div id="sec-pressure" class="sub-section">
       <h3>📉 Press 압력 세부 정보 (Details)</h3>
-      <div class="form-group">
-        <label for="press-val">변경내용1 - 압력 (Value - Pressure)</label>
-        <input type="text" id="press-val" placeholder="설정 압력을 입력하세요 / Enter pressure value" />
-      </div>
-      <div class="form-group">
-        <label for="press-reason">변경내용2 - 변경 사유 (Reason for Change)</label>
-        <textarea id="press-reason" placeholder="변경 사유를 입력하세요 / Enter reason for change"></textarea>
-      </div>
+      <button class="add-more-btn" onclick="addDynamicItem('press')">➕ Part 추가 (Add Part)</button>
+      <div id="press-dynamic-container"></div>
     </div>
 
     <div id="sec-servo" class="sub-section">
       <h3>⚙️ Servo Parameter 세부 정보 (Details)</h3>
-      <div class="form-group">
-        <label for="servo-type">변경내용 1 - 속도/위치 구분 (Speed / Position)</label>
-        <select id="servo-type">
-          <option value="">-- 선택 / Select --</option>
-          <option value="속도">속도 (Speed)</option>
-          <option value="위치">위치 (Position)</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="servo-part">변경내용 2 - Part 정보 (Part Details)</label>
-        <select id="servo-part" onchange="updateServoSubOptions()">
-          <option value="">-- 선택 / Select --</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="servo-axis">변경내용 3 - 축 정보 (Axis Information)</label>
-        <select id="servo-axis" onchange="updateServoSubOptions()">
-          <option value="">-- 선택 / Select --</option>
-          <option value="X">X</option>
-          <option value="Y">Y</option>
-          <option value="Z">Z</option>
-        </select>
-      </div>
-      
-      <div class="form-group">
-        <label for="servo-desc-select">변경내용 3 sub - 파라 설명 (Parameter Description)</label>
-        <select id="servo-desc-select">
-          <option value="">-- 선택 / Select --</option>
-          <option value="대기 위치">대기 위치 (Wait Position)</option>
-          <option value="상승 위치">상승 위치 (Up Position)</option>
-          <option value="하강 위치">하강 위치 (Down Position)</option>
-          <option value="상승 속도">상승 속도 (Up Speed)</option>
-          <option value="하강 속도">하강 속도 (Down Speed)</option>
-        </select>
-        <input type="text" id="servo-desc-input" placeholder="파라미터 설명을 직접 입력하세요 / Enter description" style="display: none;" />
-      </div>
-
-      <div class="form-group">
-        <label for="servo-val">변경내용 4 - 변경 값 (Change Value)</label>
-        <span class="notice-text">&lt;HMI 상의 값을 그대로 입력하세요. / Enter the value exactly as shown on the HMI.&gt;</span>
-        <input type="text" id="servo-val" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');" placeholder="숫자만 입력 가능 / Numbers only" />
-      </div>
-      <div class="form-group">
-        <label for="servo-reason">변경내용 5 - 변경 사유 (Reason for Change)</label>
-        <textarea id="servo-reason" placeholder="변경 사유를 입력하세요 / Enter reason for change"></textarea>
-      </div>
+      <button class="add-more-btn" onclick="addDynamicItem('servo')">➕ Part 추가 (Add Part)</button>
+      <div id="servo-dynamic-container"></div>
     </div>
 
     <div id="sec-normal" class="sub-section">
       <h3>📄 Normal Parameter 세부 정보 (Details)</h3>
-      <div class="form-group">
-        <label for="normal-type">변경내용1 - 타입 (Parameter Type)</label>
-        <select id="normal-type">
-          <option value="">-- 선택 / Select --</option>
-          <option value="펀치 유지 시간">펀치 유지 시간 (Punch Dwell Time)</option>
-          <option value="press 유지시간">press 유지시간 (Press Holding Time)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="normal-val">변경내용2 - 변경 값 (Change Value)</label>
-        <input type="text" id="normal-val" placeholder="변경 값을 입력하세요 / Enter change value" />
-      </div>
-      <div class="form-group">
-        <label for="normal-reason">변경내용3 - 변경 사유 (Reason for Change)</label>
-        <textarea id="normal-reason" placeholder="변경 사유를 입력하세요 / Enter reason for change"></textarea>
-      </div>
+      <button class="add-more-btn" onclick="addDynamicItem('normal')">➕ Part 추가 (Add Part)</button>
+      <div id="normal-dynamic-container"></div>
     </div>
 
     <button class="button" onclick="submitData()">업로드 + 자동 클립보드 복사 (Upload & Copy)</button>
@@ -503,9 +463,10 @@
 </div>
 
 <script>
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxdaWMZPDzkv0wE6RYuthNG1wZn8IdcOJbZ-Z4DZwEHX7lnEelcGDGW_6y6BuKIfakF/exec";
+  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrxmEaLIIPE5KeAyeUZhQQoqepJ-zh8mumVaaEcOFE19UpOanKyhvxetfHpvR2Nk_L/exec";
 
   let cachedHistoryData = []; 
+  let currentTempParts = []; // Caches dynamic options inside Temperature drop-downs
 
   const defaultParts = [
     { value: "상도", text: "상도 (Upper Knife)" },
@@ -523,15 +484,12 @@
   function initLineOptions() {
     const lineSelect = document.getElementById('line');
     const filterLineSelect = document.getElementById('filter-line');
-    
     for (let i = 1; i <= 6; i++) {
       for (let j = 1; j <= 2; j++) {
         const val = `${i}-${j}`;
-        
         const opt1 = document.createElement('option');
         opt1.value = val; opt1.textContent = val;
         lineSelect.appendChild(opt1);
-
         const opt2 = document.createElement('option');
         opt2.value = val; opt2.textContent = val;
         filterLineSelect.appendChild(opt2);
@@ -541,8 +499,12 @@
 
   window.addEventListener('load', () => {
     initLineOptions();
-    updatePartOptions(defaultParts);
     checkCommonApplyVisibility();
+    // Default create initial single forms for pristine UX
+    addDynamicItem('temp');
+    addDynamicItem('press');
+    addDynamicItem('servo');
+    addDynamicItem('normal');
   });
 
   function switchMode(mode) {
@@ -561,226 +523,162 @@
     }
   }
 
-  async function loadHistoryFromServer() {
-    const tbody = document.getElementById('history-tbody');
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#3498db; font-weight:bold;">⏳ 데이터를 불러오는 중입니다...</td></tr>';
+  // ================= [동적 폼 제어 로직 / Dynamic Multi-Part Forms Mechanism] =================
+  function addDynamicItem(type) {
+    const container = document.getElementById(`${type}-dynamic-container`);
+    const box = document.createElement('div');
+    box.className = 'dynamic-item-box';
     
-    try {
-      const response = await fetch(GOOGLE_SCRIPT_URL);
-      if (!response.ok) throw new Error("Network response was not ok");
-      
-      const data = await response.json();
-      if (data && data.error) {
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding:20px; color:#e74c3c;">❌ 서버 에러: ${data.error}</td></tr>`;
-        return;
-      }
-
-      cachedHistoryData = data;
-      renderHistoryTable();
-      
-    } catch(e) {
-      console.error("데이터 로드 실패:", e);
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#e74c3c;">❌ 데이터를 가져오지 못했습니다.<br>배포 상태를 다시 확인해 주세요.</td></tr>';
-    }
-  }
-
-  function renderHistoryTable() {
-    const filterLine = document.getElementById('filter-line').value;
-    const filterUnit = document.getElementById('filter-unit').value;
-    const filterAxis = document.getElementById('filter-axis').value;
-    const filterPart = document.getElementById('filter-part').value.trim().toLowerCase();
-    
-    const tbody = document.getElementById('history-tbody');
-    tbody.innerHTML = '';
-
-    if (!cachedHistoryData || cachedHistoryData.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#aaa;">조회된 이력 데이터가 없습니다.</td></tr>';
-      return;
+    // Add delete button except for the absolute first element array node
+    if (container.children.length > 0) {
+      const rmBtn = document.createElement('button');
+      rmBtn.className = 'remove-btn';
+      rmBtn.innerText = '❌ 삭제';
+      rmBtn.onclick = () => box.remove();
+      box.appendChild(rmBtn);
     }
 
-    let filteredData = [];
-
-    cachedHistoryData.forEach(row => {
-      if (row.length < 2) return;
-
-      let rawLineData = row[0] ? String(row[0]).trim() : '';
-      let rawTimeData = row[1] ? String(row[1]).trim() : '';
-      
-      let realLine = rawLineData;
-      let realTime = rawTimeData;
-
-      if (rawLineData.includes('T') || rawLineData.includes('Z') || (rawLineData.includes('-') && rawLineData.length > 10)) {
-        realTime = rawLineData;
-        realLine = rawTimeData;
-      }
-
-      if (realLine.startsWith("2026-0") || realLine.startsWith("2025-0")) {
-        const parts = realLine.split('-');
-        if (parts.length >= 3) {
-          const month = parseInt(parts[1], 10);
-          const day = parseInt(parts[2], 10);
-          realLine = `${month}-${day}`;
-        }
-      }
-
-      let realUnit = row[2] ? String(row[2]).trim() : '';
-      let realWorker = row[3] ? String(row[3]).trim() : '';
-      let realType = row[4] ? String(row[4]).trim() : '';
-      let realColF = row[5] ? String(row[5]).trim() : '';
-      let realColG = row[6] ? String(row[6]).trim() : '';
-      let realColH = row[7] ? String(row[7]).trim() : '';
-      let realColI = row[8] ? String(row[8]).trim() : '';
-      let realColJ = row[9] ? String(row[9]).trim() : '';
-
-      if (realUnit === 'Servo' || realUnit === 'Temperature' || realUnit === 'Pressure') {
-        realType = realUnit;
-        realUnit = realLine;
-        realLine = "-";
-      }
-
-      const matchLine = filterLine ? (realLine === filterLine) : true;
-      const matchUnit = filterUnit ? (realUnit === filterUnit) : true;
-      
-      const axisVal = realType === 'Servo Parameter' || realType === 'Servo' ? realColG : '';
-      const matchAxis = filterAxis ? (axisVal === filterAxis) : true;
-      const matchPart = filterPart ? (realColF.toLowerCase().includes(filterPart) || realColH.toLowerCase().includes(filterPart)) : true;
-      
-      if (matchLine && matchUnit && matchAxis && matchPart) {
-        filteredData.push({
-          time: realTime, line: realLine, unit: realUnit, worker: realWorker, type: realType,
-          f: realColF, g: realColG, h: realColH, i: realColI, j: realColJ
-        });
-      }
-    });
-
-    if (filteredData.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#aaa;">조건에 일치하는 이력이 없습니다.</td></tr>';
-      return;
+    let innerHTML = '';
+    if (type === 'temp') {
+      innerHTML += `
+        <div class="form-group">
+          <label>변경내용1 - 온도 (Value - Temperature)</label>
+          <span class="notice-text">&lt;HMI 상의 값을 그대로 입력하세요. / Enter the value exactly as shown on the HMI.&gt;</span>
+          <input type="text" class="temp-val" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*?)\\..*/g, '$1');" placeholder="숫자만 입력 가능 / Numbers only" />
+        </div>
+        <div class="form-group">
+          <label>변경내용 sub - 파트 정보 (Part Detail)</label>
+          <select class="temp-sub-select"><option value="">-- 선택 / Select --</option></select>
+        </div>
+        <div class="form-group">
+          <label>변경내용2 - 변경 사유 (Reason for Change)</label>
+          <textarea class="temp-reason" placeholder="변경 사유를 입력하세요 / Enter reason for change"></textarea>
+        </div>`;
+    } 
+    else if (type === 'press') {
+      innerHTML += `
+        <div class="form-group">
+          <label>변경내용1 - 압력 (Value - Pressure)</label>
+          <input type="text" class="press-val" placeholder="설정 압력을 입력하세요 / Enter pressure value" />
+        </div>
+        <div class="form-group">
+          <label>변경내용2 - 변경 사유 (Reason for Change)</label>
+          <textarea class="press-reason" placeholder="변경 사유를 입력하세요 / Enter reason for change"></textarea>
+        </div>`;
+    } 
+    else if (type === 'servo') {
+      innerHTML += `
+        <div class="form-group">
+          <label>변경내용 1 - 속도/위치 구분 (Speed / Position)</label>
+          <select class="servo-type">
+            <option value="">-- 선택 / Select --</option>
+            <option value="속도">속도 (Speed)</option>
+            <option value="위치">위치 (Position)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>변경내용 2 - Part 정보 (Part Details)</label>
+          <select class="servo-part" onchange="updateServoSubOptionsDynamic(this)"><option value="">-- 선택 / Select --</option></select>
+        </div>
+        <div class="form-group">
+          <label>변경내용 3 - 축 정보 (Axis Information)</label>
+          <select class="servo-axis" onchange="updateServoSubOptionsDynamic(this)">
+            <option value="">-- 선택 / Select --</option>
+            <option value="X">X</option>
+            <option value="Y">Y</option>
+            <option value="Z">Z</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>변경내용 3 sub - 파라 설명 (Parameter Description)</label>
+          <select class="servo-desc-select">
+            <option value="">-- 선택 / Select --</option>
+          </select>
+          <input type="text" class="servo-desc-input" placeholder="파라미터 설명을 직접 입력하세요 / Enter description" style="display: none;" />
+        </div>
+        <div class="form-group">
+          <label>변경내용 4 - 변경 값 (Change Value)</label>
+          <span class="notice-text">&lt;HMI 상의 값을 그대로 입력하세요. / Enter the value exactly as shown on the HMI.&gt;</span>
+          <input type="text" class="servo-val" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\\..*?)\\..*/g, '$1');" placeholder="숫자만 입력 가능 / Numbers only" />
+        </div>
+        <div class="form-group">
+          <label>변경내용 5 - 변경 사유 (Reason for Change)</label>
+          <textarea class="servo-reason" placeholder="변경 사유를 입력하세요 / Enter reason for change"></textarea>
+        </div>`;
+    } 
+    else if (type === 'normal') {
+      innerHTML += `
+        <div class="form-group">
+          <label>변경내용1 - 타입 (Parameter Type)</label>
+          <select class="normal-type">
+            <option value="">-- 선택 / Select --</option>
+            <option value="펀치 유지 시간">펀치 유지 시간 (Punch Dwell Time)</option>
+            <option value="press 유지시간">press 유지시간 (Press Holding Time)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>변경내용2 - 변경 값 (Change Value)</label>
+          <input type="text" class="normal-val" placeholder="변경 값을 입력하세요 / Enter change value" />
+        </div>
+        <div class="form-group">
+          <label>변경내용3 - 변경 사유 (Reason for Change)</label>
+          <textarea class="normal-reason" placeholder="변경 사유를 입력하세요 / Enter reason for change"></textarea>
+        </div>`;
     }
-    
-    filteredData.reverse().forEach(item => {
-      const tr = document.createElement('tr');
-      
-      let displayTime = "-";
-      if (item.time) {
-        displayTime = item.time.includes("T") ? item.time.replace("T", " ").substring(0, 16) : item.time.substring(0, 16);
-      }
 
-      let personDisplay = item.worker;
-      if (item.worker.includes(" - 요청: ")) {
-        const parts = item.worker.split(" - 요청: ");
-        personDisplay = `<strong>${parts[0]}</strong><br><span style="font-size:11px; color:#64748b;">요청: ${parts[1]}</span>`;
-      }
+    const contentDiv = document.createElement('div');
+    contentDiv.innerHTML = innerHTML;
+    box.appendChild(contentDiv);
+    container.appendChild(box);
 
-      let displayAxis = "-";
-      let displayPart = "";
-
-      if (item.type.includes('Servo')) {
-        displayAxis = `<strong style="color:#2c3e50;">${item.g}</strong>`;
-        displayPart = `<span style="font-weight:500;">${item.f}</span><br><span style="font-size:11px; color:#64748b;">${item.h}</span>`;
-      } else if (item.type.includes('Temperature') || item.type.includes('온도')) {
-        // 내부 이력 조회 뷰어 테이블 동기화 보정
-        displayPart = `<span style="color:#e11d48; font-weight:bold;">Temperature (온도)</span><br><span style="font-size:11px; color:#64748b;">${item.h || ''}</span>`;
-      } else if (item.type.includes('Pressure') || item.type.includes('압력')) {
-        displayPart = `<span style="color:#9333ea; font-weight:bold;">Pressure (압력)</span>`;
-      } else if (item.type.includes('Normal')) {
-        displayPart = `<span style="color:#2563eb; font-weight:bold;">${item.f}</span>`;
-      } else {
-        displayPart = item.f;
-      }
-
-      tr.innerHTML = `
-        <td style="text-align:center; font-weight:bold; color:#1e293b;">${item.line}</td>
-        <td style="color:#475569; font-size:12px;">${displayTime}</td>
-        <td><strong>${item.unit}</strong></td>
-        <td>${personDisplay}</td>
-        <td><span style="font-size:11px; padding:2px 5px; background:#f1f5f9; border-radius:4px; color:#475569;">${item.type.replace(" Parameter","")}</span></td>
-        <td style="text-align:center;">${displayAxis}</td>
-        <td>${displayPart}</td>
-        <td style="color:#16a34a; font-weight:bold;">${item.i}</td>
-        <td style="color:#334155; font-size:12px; white-space:pre-wrap;">${item.j}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  }
-
-  function checkCommonApplyVisibility() {
-    const unit = document.getElementById('unit').value;
-    const wrapper = document.getElementById('common-apply-wrapper');
-    const chk = document.getElementById('common-apply');
-
-    const pairableUnits = [
-      "Heat Press3A(270 Folding 전)", "Heat Press3B(270 Folding 전)",
-      "270 Folding A", "270 Folding B",
-      "Side Press A", "Side Press B",
-      "Taping Unit A", "Taping Unit B",
-      "Taping Press A", "Taping Press B"
-    ];
-
-    if (pairableUnits.includes(unit)) {
-      wrapper.style.display = "flex";
-    } else {
-      wrapper.style.display = "none";
-      chk.checked = false; 
+    // Context synchronization after mounting DOM nodes
+    const masterUnit = document.getElementById('unit').value;
+    if (masterUnit) {
+      if (type === 'temp') syncSingleTempSelect(box.querySelector('.temp-sub-select'));
+      if (type === 'servo') syncSingleServoParts(box.querySelector('.servo-part'));
     }
-  }
-
-  function getCounterpartUnit(currentUnit) {
-    const mapping = {
-      "Heat Press3A(270 Folding 전)": "Heat Press3B(270 Folding 전)",
-      "Heat Press3B(270 Folding 전)": "Heat Press3A(270 Folding 전)",
-      "270 Folding A": "270 Folding B",
-      "270 Folding B": "270 Folding A",
-      "Side Press A": "Side Press B",
-      "Side Press B": "Side Press A",
-      "Taping Unit A": "Taping Unit B",
-      "Taping Unit B": "Taping Unit A",
-      "Taping Press A": "Taping Press B",
-      "Taping Press B": "Taping Press A"
-    };
-    return mapping[currentUnit] || null;
   }
 
   function handleUnitChange() {
     const unit = document.getElementById('unit').value;
-    const descSelect = document.getElementById('servo-desc-select');
-    const descInput = document.getElementById('servo-desc-input');
-
-    if (unit.startsWith('Taping Unit')) {
-      updatePartOptions(tapingParts);
-      descSelect.style.display = 'none';
-      descInput.style.display = 'block';
-    } else {
-      updatePartOptions(defaultParts);
-      descSelect.style.display = 'block';
-      descInput.style.display = 'none';
-    }
     checkCommonApplyVisibility();
-    updateTemperatureSubOptions(); 
-    updateServoSubOptions(); 
-  }
+    updateTemperatureSubOptionsMaster(); 
 
-  function updatePartOptions(optionsArray) {
-    const partSelect = document.getElementById('servo-part');
-    if(!partSelect) return;
-    partSelect.innerHTML = '<option value="">-- 선택 / Select --</option>';
-    optionsArray.forEach(opt => {
-      const option = document.createElement('option');
-      option.value = opt.value;
-      option.textContent = opt.text;
-      partSelect.appendChild(option);
+    // Sync all currently initialized dynamic servo parts selector layouts
+    const servoPartBoxes = document.querySelectorAll('#servo-dynamic-container .servo-part');
+    servoPartBoxes.forEach(select => {
+      syncSingleServoParts(select);
+      updateServoSubOptionsDynamic(select);
     });
   }
 
-  function updateTemperatureSubOptions() {
+  function syncSingleTempSelect(selectElement) {
+    if (!selectElement) return;
+    selectElement.innerHTML = '<option value="">-- 선택 / Select --</option>';
+    currentTempParts.forEach(opt => {
+      const o = document.createElement('option');
+      o.value = opt.value; o.textContent = opt.text;
+      selectElement.appendChild(o);
+    });
+  }
+
+  function syncSingleServoParts(selectElement) {
+    if (!selectElement) return;
     const unit = document.getElementById('unit').value;
-    const wrapper = document.getElementById('temp-sub-wrapper');
-    const select = document.getElementById('temp-sub-select');
+    selectElement.innerHTML = '<option value="">-- 선택 / Select --</option>';
+    const arr = unit.startsWith('Taping Unit') ? tapingParts : defaultParts;
+    arr.forEach(opt => {
+      const option = document.createElement('option');
+      option.value = opt.value; option.textContent = opt.text;
+      selectElement.appendChild(option);
+    });
+  }
+
+  function updateTemperatureSubOptionsMaster() {
+    const unit = document.getElementById('unit').value;
+    currentTempParts = [];
     
-    if (!unit) {
-      wrapper.style.display = "none";
-      return;
-    }
+    if (!unit) return;
 
     let options = [];
     if (unit.startsWith("Heat Press") || unit === "180 Folding") {
@@ -789,33 +687,35 @@
       options = ["상도", "하도", "Punch"];
     }
 
-    if (options.length > 0) {
-      select.innerHTML = '<option value="">-- 선택 / Select --</option>';
-      options.forEach(opt => {
-        const o = document.createElement('option');
-        o.value = opt; 
-        let displayEng = opt === "상도" ? "Upper Knife" : (opt === "하도" ? "Lower Knife" : "Punch");
-        o.textContent = `${opt} (${displayEng})`;
-        select.appendChild(o);
-      });
-      wrapper.style.display = "block";
-    } else {
-      wrapper.style.display = "none";
-      select.innerHTML = '<option value="">-- 선택 / Select --</option>';
-    }
+    options.forEach(opt => {
+      let displayEng = opt === "상도" ? "Upper Knife" : (opt === "하도" ? "Lower Knife" : "Punch");
+      currentTempParts.push({ value: opt, text: `${opt} (${displayEng})` });
+    });
+
+    // Retroactively update all child selects
+    document.querySelectorAll('#temp-dynamic-container .temp-sub-select').forEach(select => {
+      syncSingleTempSelect(select);
+    });
   }
 
-  function updateServoSubOptions() {
+  function updateServoSubOptionsDynamic(elementElement) {
+    const containerBox = elementElement.closest('.dynamic-item-box');
     const unit = document.getElementById('unit').value;
-    const axis = document.getElementById('servo-axis').value;
-    const part = document.getElementById('servo-part').value;
-    const descSelect = document.getElementById('servo-desc-select');
-    const descInput = document.getElementById('servo-desc-input');
+    const axis = containerBox.querySelector('.servo-axis').value;
+    const part = containerBox.querySelector('.servo-part').value;
+    const descSelect = containerBox.querySelector('.servo-desc-select');
+    const descInput = containerBox.querySelector('.servo-desc-input');
 
-    if (unit.startsWith('Taping Unit')) return; 
+    if (unit.startsWith('Taping Unit')) {
+      descSelect.style.display = 'none';
+      descInput.style.display = 'block';
+      return;
+    } else {
+      descSelect.style.display = 'block';
+      descInput.style.display = 'none';
+    }
 
     descSelect.innerHTML = '<option value="">-- 선택 / Select --</option>';
-    
     const isFoldingUnit = (unit === "90 Folding" || unit.includes("270 Folding"));
     
     if (isFoldingUnit && part === "상도" && axis === "Z") {
@@ -852,7 +752,6 @@
 
   function toggleSubFields() {
     const contentType = document.getElementById('contentType').value;
-    
     document.getElementById('sec-temperature').style.display = 'none';
     document.getElementById('sec-pressure').style.display = 'none'; 
     document.getElementById('sec-servo').style.display = 'none';
@@ -860,37 +759,19 @@
 
     if (contentType === 'Temperature') {
       document.getElementById('sec-temperature').style.display = 'block';
-      updateTemperatureSubOptions();
+      updateTemperatureSubOptionsMaster();
     } else if (contentType === 'Pressure') {
       document.getElementById('sec-pressure').style.display = 'block'; 
     } else if (contentType === 'Servo Parameter') {
       document.getElementById('sec-servo').style.display = 'block';
-      updateServoSubOptions();
     } else if (contentType === 'Normal Parameter') {
       document.getElementById('sec-normal').style.display = 'block';
     }
   }
 
-  function fallbackCopyText(text) {
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    textArea.style.position = "fixed";  
-    textArea.style.left = "-999999px";
-    textArea.style.top = "-999999px";
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    try {
-      document.execCommand('copy');
-    } catch (err) {
-      console.error('Fallback copy failed', err);
-    }
-    document.body.removeChild(textArea);
-  }
-
+  // ================= [데이터 전송 및 멀티 로우 자동 분할 / Core Request Split Execution] =================
   async function submitData() {
     const statusDiv = document.getElementById('status');
-    
     const line = document.getElementById('line').value;
     const unit = document.getElementById('unit').value;
     const worker = document.getElementById('worker').value.trim();
@@ -904,12 +785,10 @@
     }
 
     const combinedWorker = requester ? `${worker} - 요청: ${requester}` : worker;
-    let sub1 = "", sub2 = "", sub3 = "", sub4 = "", sub5 = "";
-    
     let clipboardText = `[EOL Folding Parameter 변경 공유]\n• 라인(Line): ${line}\n`;
+    
     if (isCommonApply && getCounterpartUnit(unit)) {
-      const counterUnit = getCounterpartUnit(unit);
-      clipboardText += `• 유닛(Unit): ${unit} & ${counterUnit} (★A/B 공통 적용)\n`;
+      clipboardText += `• 유닛(Unit): ${unit} & ${getCounterpartUnit(unit)} (★A/B 공통 적용)\n`;
     } else {
       clipboardText += `• 유닛(Unit): ${unit}\n`;
     }
@@ -917,71 +796,85 @@
     if(requester) clipboardText += `• 요청자(Requester): ${requester}\n`;
     clipboardText += `• 변경유형(Type): ${contentType}\n`;
 
-    // 🛠️ 새로 수정한 Apps Script의 3개 인자 수용 구조에 1:1 매핑 연동
+    const partialPayloads = [];
+
     if (contentType === 'Temperature') {
-      const tempSub = document.getElementById('temp-sub-select').value;
-      const tempVal = document.getElementById('temp-val').value;
-      const tempReason = document.getElementById('temp-reason').value;
+      const boxes = document.querySelectorAll('#temp-dynamic-container .dynamic-item-box');
+      let idx = 1;
+      for (const box of boxes) {
+        const tempSub = box.querySelector('.temp-sub-select').value;
+        const tempVal = box.querySelector('.temp-val').value;
+        const tempReason = box.querySelector('.temp-reason').value;
 
-      if(!tempVal || !tempReason || !tempSub) { alert("세부 항목을 모두 입력해주세요."); return; }
-
-      // 대괄호 제거 및 순수 명칭으로 3개 매핑 분기 구축
-      sub1 = tempSub;    // -> Apps Script 내부 colH(H열 / 변경내용3)에 대괄호 없이 안착
-      sub2 = tempVal;    // -> Apps Script 내부 colI(I열 / 변경 값)에 순수 숫자 안착
-      sub3 = tempReason; // -> Apps Script 내부 colJ(J열 / 변경 사유)에 사유 안착
-
-      clipboardText += `• 온도(Temp): ${tempVal} [${tempSub}]\n• 변경 사유(Reason): ${tempReason}`;
+        if(!tempVal || !tempReason || !tempSub) { alert(`Temperature Part #${idx} 세부 항목을 입력하세요.`); return; }
+        
+        partialPayloads.push({ sub1: tempSub, sub2: tempVal, sub3: tempReason, sub4: "", sub5: "" });
+        clipboardText += `\n[Part #${idx}]\n• 온도(Temp): ${tempVal}\n• 파트 정보: ${tempSub}\n• 변경 사유: ${tempReason}\n`;
+        idx++;
+      }
     } 
     else if (contentType === 'Pressure') {
-      const pressVal = document.getElementById('press-val').value;
-      const pressReason = document.getElementById('press-reason').value;
-      if(!pressVal || !pressReason) { alert("세부 항목을 모두 입력해주세요."); return; }
+      const boxes = document.querySelectorAll('#press-dynamic-container .dynamic-item-box');
+      let idx = 1;
+      for (const box of boxes) {
+        const pressVal = box.querySelector('.press-val').value;
+        const pressReason = box.querySelector('.press-reason').value;
 
-      sub1 = "Press 압력";
-      sub2 = pressVal;
-      sub3 = pressReason;
-      clipboardText += `• 압력(Press): ${pressVal}\n• 변경 사유(Reason): ${pressReason}`;
+        if(!pressVal || !pressReason) { alert(`Pressure Part #${idx} 세부 항목을 입력하세요.`); return; }
+        
+        partialPayloads.push({ sub1: "Press 압력", sub2: pressVal, sub3: pressReason, sub4: "", sub5: "" });
+        clipboardText += `\n[Part #${idx}]\n• 압력(Press): ${pressVal}\n• 변경 사유: ${pressReason}\n`;
+        idx++;
+      }
     }
     else if (contentType === 'Servo Parameter') {
-      const servoType = document.getElementById('servo-type').value;
-      const servoAxis = document.getElementById('servo-axis').value;
-      const partVal = document.getElementById('servo-part').value;
-      let descVal = unit.startsWith('Taping Unit') ? document.getElementById('servo-desc-input').value : document.getElementById('servo-desc-select').value;
-      const servoVal = document.getElementById('servo-val').value;
-      const servoReason = document.getElementById('servo-reason').value;
+      const boxes = document.querySelectorAll('#servo-dynamic-container .dynamic-item-box');
+      let idx = 1;
+      for (const box of boxes) {
+        const servoType = box.querySelector('.servo-type').value;
+        const servoAxis = box.querySelector('.servo-axis').value;
+        const partVal = box.querySelector('.servo-part').value;
+        let descVal = unit.startsWith('Taping Unit') ? box.querySelector('.servo-desc-input').value : box.querySelector('.servo-desc-select').value;
+        const servoVal = box.querySelector('.servo-val').value;
+        const servoReason = box.querySelector('.servo-reason').value;
 
-      if(!servoType || !servoAxis || !partVal || !descVal || !servoVal || !servoReason) { alert("세부 항목을 모두 완성해주세요."); return; }
+        if(!servoType || !servoAxis || !partVal || !descVal || !servoVal || !servoReason) { alert(`Servo Part #${idx} 세부 항목을 입력하세요.`); return; }
 
-      sub1 = servoType;
-      sub2 = servoAxis;
-      sub3 = `${partVal} - ${descVal}`; 
-      sub4 = servoVal;                  
-      sub5 = servoReason;               
-
-      clipboardText += `• 구분(Type): ${sub1}\n• 축(Axis): ${sub2}\n• Part 정보: ${sub3}\n• 변경 값(Value): ${sub4}\n• 변경 사유(Reason): ${sub5}`;
+        partialPayloads.push({ sub1: servoType, sub2: servoAxis, sub3: `${partVal} - ${descVal}`, sub4: servoVal, sub5: servoReason });
+        clipboardText += `\n[Part #${idx}]\n• 구분(Type): ${servoType}\n• 축(Axis): ${servoAxis}\n• Part 정보: ${partVal} - ${descVal}\n• 변경 값(Value): ${servoVal}\n• 변경 사유: ${servoReason}\n`;
+        idx++;
+      }
     } 
     else if (contentType === 'Normal Parameter') {
-      const normalType = document.getElementById('normal-type').value;
-      const normalVal = document.getElementById('normal-val').value;
-      const normalReason = document.getElementById('normal-reason').value;
+      const boxes = document.querySelectorAll('#normal-dynamic-container .dynamic-item-box');
+      let idx = 1;
+      for (const box of boxes) {
+        const normalType = box.querySelector('.normal-type').value;
+        const normalVal = box.querySelector('.normal-val').value;
+        const normalReason = box.querySelector('.normal-reason').value;
 
-      if(!normalType || !normalVal || !normalReason) { alert("세부 항목을 모두 입력해주세요."); return; }
-      
-      sub1 = normalType;   
-      sub2 = normalVal;    
-      sub3 = normalReason; 
-      clipboardText += `• 타입(Type): ${normalType}\n• 변경 값(Value): ${normalVal}\n• 변경 사유(Reason): ${normalReason}`;
+        if(!normalType || !normalVal || !normalReason) { alert(`Normal Part #${idx} 세부 항목을 입력하세요.`); return; }
+        
+        partialPayloads.push({ sub1: normalType, sub2: normalVal, sub3: normalReason, sub4: "", sub5: "" });
+        clipboardText += `\n[Part #${idx}]\n• 타입(Type): ${normalType}\n• 변경 값(Value): ${normalVal}\n• 변경 사유: ${normalReason}\n`;
+        idx++;
+      }
     }
 
     statusDiv.style.color = "orange";
-    statusDiv.innerText = "⏳ 데이터 전송 중... (Sending data...)";
+    statusDiv.innerText = "⏳ 데이터 분할 전송 중... (Sending split row data...)";
 
-    const payloads = [];
-    payloads.push({ line: line, unit: unit, worker: combinedWorker, contentType: contentType, sub1: sub1, sub2: sub2, sub3: sub3, sub4: sub4, sub5: sub5 });
-
-    if (isCommonApply && getCounterpartUnit(unit)) {
-      payloads.push({ line: line, unit: getCounterpartUnit(unit), worker: combinedWorker, contentType: contentType, sub1: sub1, sub2: sub2, sub3: sub3, sub4: sub4, sub5: sub5 });
-    }
+    // Build absolute unified batch sequence payload elements array
+    const finalPayloads = [];
+    partialPayloads.forEach(item => {
+      // Primary Master Selected Unit Row
+      finalPayloads.push({ line: line, unit: unit, worker: combinedWorker, contentType: contentType, sub1: item.sub1, sub2: item.sub2, sub3: item.sub3, sub4: item.sub4, sub5: item.sub5 });
+      
+      // Symmetrical Counterpart Secondary Workspace Unit Row (if A/B common copy checkbox toggled)
+      if (isCommonApply && getCounterpartUnit(unit)) {
+        finalPayloads.push({ line: line, unit: getCounterpartUnit(unit), worker: combinedWorker, contentType: contentType, sub1: item.sub1, sub2: item.sub2, sub3: item.sub3, sub4: item.sub4, sub5: item.sub5 });
+      }
+    });
 
     if (navigator.clipboard && window.isSecureContext) {
       await navigator.clipboard.writeText(clipboardText).catch(() => fallbackCopyText(clipboardText));
@@ -990,7 +883,8 @@
     }
 
     try {
-      for (const p of payloads) {
+      // Linear execution batch iteration sequence triggers multi-row insertions dynamically
+      for (const p of finalPayloads) {
         await fetch(GOOGLE_SCRIPT_URL, {
           method: "POST",
           mode: "no-cors",
@@ -1000,22 +894,22 @@
       }
 
       statusDiv.style.color = "green";
-      statusDiv.innerText = "✅ 업로드 및 클립보드 복사 완료!";
+      statusDiv.innerText = `✅ 업로드 및 클립보드 복사 완료! (총 ${finalPayloads.length}개 행 전송 완료)`;
 
+      // Cleanup master forms elements after transaction
       document.getElementById('worker').value = '';
       document.getElementById('requester').value = '';
       document.getElementById('contentType').value = '';
       document.getElementById('unit').value = '';
       document.getElementById('common-apply').checked = false;
       
-      document.getElementById('press-val').value = '';
-      document.getElementById('press-reason').value = '';
-      document.getElementById('temp-val').value = '';
-      document.getElementById('temp-reason').value = '';
-      document.getElementById('servo-val').value = '';
-      document.getElementById('servo-reason').value = '';
-      
-      updatePartOptions(defaultParts);
+      // Clear container and reconstruct simple baseline inputs
+      document.getElementById('temp-dynamic-container').innerHTML = '';
+      document.getElementById('press-dynamic-container').innerHTML = '';
+      document.getElementById('servo-dynamic-container').innerHTML = '';
+      document.getElementById('normal-dynamic-container').innerHTML = '';
+      addDynamicItem('temp'); addDynamicItem('press'); addDynamicItem('servo'); addDynamicItem('normal');
+
       toggleSubFields();
       checkCommonApplyVisibility();
 
@@ -1023,6 +917,30 @@
       console.error(error);
       statusDiv.style.color = "red";
       statusDiv.innerText = "❌ 전송 오류가 발생했으나 클립보드는 복사되었습니다.";
+    }
+  }
+
+  function fallbackCopyText(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";  
+    textArea.style.left = "-999999px"; textArea.style.top = "-999999px";
+    document.body.appendChild(textArea);
+    textArea.focus(); textArea.select();
+    try { document.execCommand('copy'); } catch (err) {}
+    document.body.removeChild(textArea);
+  }
+
+  async function loadHistoryFromServer() {
+    const tbody = document.getElementById('history-tbody');
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#3498db; font-weight:bold;">⏳ 데이터를 불러오는 중입니다...</td></tr>';
+    try {
+      const response = await fetch(GOOGLE_SCRIPT_URL);
+      const data = await response.json();
+      cachedHistoryData = data;
+      renderHistoryTable();
+    } catch(e) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#e74c3c;">❌ 데이터를 가져오지 못했습니다.</td></tr>';
     }
   }
 </script>
