@@ -117,6 +117,13 @@
       color: #34495e;
       font-size: 14px;
     }
+    .notice-text {
+      font-size: 12px;
+      color: #e11d48;
+      font-weight: bold;
+      margin-bottom: 6px;
+      display: block;
+    }
     select, input, textarea {
       width: 100%;
       padding: 12px;
@@ -290,7 +297,7 @@
 
     <div class="checkbox-group" id="common-apply-wrapper">
       <input type="checkbox" id="common-apply" />
-      <label for="common-apply"><strong>🔄 A/B 공통 적용</strong> (선택 시 반대편 유닛도 행 자동 생성 및 동시 업로드)</label>
+      <label for="common-apply"><strong>🔄 A/B 공통 적용</strong> (선택 시 반대편 유닛도 행 자동 생성 및 동시 업로드 / Simultaneous Upload to Counterpart)</label>
     </div>
 
     <div class="form-row">
@@ -309,7 +316,7 @@
       <select id="contentType" onchange="toggleSubFields()">
         <option value="">-- 유형을 선택하세요 / Select Type --</option>
         <option value="Temperature">Temperature (온도)</option>
-        <option value="Pressure">Press 압력 (압력)</option>
+        <option value="Pressure">Press 압력 (압력 / Pressure)</option>
         <option value="Servo Parameter">Servo Parameter (서보 파라미터)</option>
         <option value="Normal Parameter">Normal Parameter (일반 파라미터)</option>
       </select>
@@ -355,19 +362,21 @@
           <option value="위치">위치 (Position)</option>
         </select>
       </div>
+
       <div class="form-group">
-        <label for="servo-axis">변경내용 2 - 축 정보 (Axis Information)</label>
+        <label for="servo-part">변경내용 2 - Part 정보 (Part Details)</label>
+        <select id="servo-part" onchange="updateServoSubOptions()">
+          <option value="">-- 선택 / Select --</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="servo-axis">변경내용 3 - 축 정보 (Axis Information)</label>
         <select id="servo-axis" onchange="updateServoSubOptions()">
           <option value="">-- 선택 / Select --</option>
           <option value="X">X</option>
           <option value="Y">Y</option>
           <option value="Z">Z</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label for="servo-part">변경내용 3 - Part 정보 (Part Details)</label>
-        <select id="servo-part" onchange="updateServoSubOptions()">
-          <option value="">-- 선택 / Select --</option>
         </select>
       </div>
       
@@ -386,7 +395,8 @@
 
       <div class="form-group">
         <label for="servo-val">변경내용 4 - 변경 값 (Change Value)</label>
-        <input type="number" step="any" id="servo-val" placeholder="변경 수치를 입력하세요 / Enter change value" />
+        <span class="notice-text">&lt;HMI 상의 값을 그대로 입력하세요. / Enter the value exactly as shown on the HMI.&gt;</span>
+        <input type="text" id="servo-val" oninput="this.value = this.value.replace(/[^0-9.]/g, '').replace(/(\..*?)\..*/g, '$1');" placeholder="숫자만 입력 가능 / Numbers only" />
       </div>
       <div class="form-group">
         <label for="servo-reason">변경내용 5 - 변경 사유 (Reason for Change)</label>
@@ -423,13 +433,13 @@
 
     <div class="filter-grid">
       <div class="form-group">
-        <label>🔎 라인 필터</label>
+        <label>🔎 라인 필터 (Line Filter)</label>
         <select id="filter-line" onchange="renderHistoryTable()">
           <option value="">- 전체 라인 -</option>
         </select>
       </div>
       <div class="form-group">
-        <label>🔎 유닛 필터</label>
+        <label>🔎 유닛 필터 (Unit Filter)</label>
         <select id="filter-unit" onchange="renderHistoryTable()">
           <option value="">- 전체 유닛 -</option>
           <option value="Pouch Cutter">Pouch Cutter</option>
@@ -450,7 +460,7 @@
         </select>
       </div>
       <div class="form-group">
-        <label>🔎 축(Axis) 필터</label>
+        <label>🔎 축 필터 (Axis Filter)</label>
         <select id="filter-axis" onchange="renderHistoryTable()">
           <option value="">- 전체 축 -</option>
           <option value="X">X축</option>
@@ -459,7 +469,7 @@
         </select>
       </div>
       <div class="form-group">
-        <label>🔎 파트 정보 검색</label>
+        <label>🔎 파트 정보 검색 (Part Info Search)</label>
         <input type="text" id="filter-part" oninput="renderHistoryTable()" placeholder="파트명 입력..." />
       </div>
     </div>
@@ -492,23 +502,27 @@
 </div>
 
 <script>
+  // Web App API Deployment URL for Google Apps Script
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyrxmEaLIIPE5KeAyeUZhQQoqepJ-zh8mumVaaEcOFE19UpOanKyhvxetfHpvR2Nk_L/exec";
 
   let cachedHistoryData = []; 
 
+  // Default parts data array (Updated: "Mold" changed to "Knife")
   const defaultParts = [
-    { value: "상도", text: "상도 (Upper Mold)" },
-    { value: "하도", text: "하도 (Lower Mold)" },
+    { value: "상도", text: "상도 (Upper Knife)" },
+    { value: "하도", text: "하도 (Lower Knife)" },
     { value: "펀치", text: "펀치 (Punch)" },
     { value: "유닛 전체(얼라인)", text: "유닛 전체/얼라인 (Total Unit / Align)" }
   ];
 
+  // Specific parts configuration array for Taping Units
   const tapingParts = [
     { value: "Feeding Gripper", text: "Feeding Gripper" },
     { value: "Attacher Jig", text: "Attacher Jig" },
     { value: "Cutting Knife", text: "Cutting Knife" }
   ];
 
+  // Initialize Line Selection options dynamically (Format: e.g., 1-1, 1-2)
   function initLineOptions() {
     const lineSelect = document.getElementById('line');
     const filterLineSelect = document.getElementById('filter-line');
@@ -528,12 +542,14 @@
     }
   }
 
+  // Window load event handler initialization
   window.addEventListener('load', () => {
     initLineOptions();
     updatePartOptions(defaultParts);
     checkCommonApplyVisibility();
   });
 
+  // Tab switching interface handler mode toggle
   function switchMode(mode) {
     document.getElementById('tab-input').classList.remove('active');
     document.getElementById('tab-view').classList.remove('active');
@@ -550,6 +566,7 @@
     }
   }
 
+  // Async server fetch handler for parameter log history
   async function loadHistoryFromServer() {
     const tbody = document.getElementById('history-tbody');
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#3498db; font-weight:bold;">⏳ 데이터를 불러오는 중입니다...</td></tr>';
@@ -573,6 +590,7 @@
     }
   }
 
+  // Render history data array matrix to front-end HTML table DOM
   function renderHistoryTable() {
     const filterLine = document.getElementById('filter-line').value;
     const filterUnit = document.getElementById('filter-unit').value;
@@ -692,6 +710,7 @@
     });
   }
 
+  // Check visibility for the simultaneous A/B common unit matching block
   function checkCommonApplyVisibility() {
     const unit = document.getElementById('unit').value;
     const wrapper = document.getElementById('common-apply-wrapper');
@@ -713,6 +732,7 @@
     }
   }
 
+  // Get matching counter-part symmetric workspace unit designation string
   function getCounterpartUnit(currentUnit) {
     const mapping = {
       "Heat Press3A(270 Folding 전)": "Heat Press3B(270 Folding 전)",
@@ -729,6 +749,7 @@
     return mapping[currentUnit] || null;
   }
 
+  // Handle master main UI core selection modifications for Unit parameter inputs
   function handleUnitChange() {
     const unit = document.getElementById('unit').value;
     const descSelect = document.getElementById('servo-desc-select');
@@ -748,6 +769,7 @@
     updateServoSubOptions(); 
   }
 
+  // Update selection component parameters options array layout elements
   function updatePartOptions(optionsArray) {
     const partSelect = document.getElementById('servo-part');
     if(!partSelect) return;
@@ -760,7 +782,7 @@
     });
   }
 
-  // 🛠️ 1. 온도 조건 매핑 (추가 신설 구조 처리)
+  // Dynamic mapping for Temperature Sub Options (Structure update)
   function updateTemperatureSubOptions() {
     const unit = document.getElementById('unit').value;
     const wrapper = document.getElementById('temp-sub-wrapper');
@@ -782,7 +804,10 @@
       select.innerHTML = '<option value="">-- 선택 / Select --</option>';
       options.forEach(opt => {
         const o = document.createElement('option');
-        o.value = opt; o.textContent = opt;
+        o.value = opt; 
+        // Sync display nomenclature: "Mold" to "Knife"
+        let displayEng = opt === "상도" ? "Upper Knife" : (opt === "하도" ? "Lower Knife" : "Punch");
+        o.textContent = `${opt} (${displayEng})`;
         select.appendChild(o);
       });
       wrapper.style.display = "block";
@@ -792,7 +817,8 @@
     }
   }
 
-  // 🛠️ 2. 서보 조건 구조적 매핑 묶음 처리 로직
+  // Structural condition logic linkage handling code for Servo Sub Options
+  // Maps Unit - Part - Axis parameter scenarios to exact drop-down options
   function updateServoSubOptions() {
     const unit = document.getElementById('unit').value;
     const axis = document.getElementById('servo-axis').value;
@@ -806,15 +832,15 @@
     
     const isFoldingUnit = (unit === "90 Folding" || unit.includes("270 Folding"));
     
-    // Case A: 90/270 Folding - 상도 - Z
+    // Case A: 90/270 Folding - 상도 (Upper Knife) - Z
     if (isFoldingUnit && part === "상도" && axis === "Z") {
       addOptions(descSelect, ["1차 하강위치", "2차 하강위치", "대기위치"]);
     } 
-    // Case B: 90/270 Folding - 하도 - Z
+    // Case B: 90/270 Folding - 하도 (Lower Knife) - Z
     else if (isFoldingUnit && part === "하도" && axis === "Z") {
       addOptions(descSelect, ["상승위치", "대기위치"]);
     } 
-    // Case C: 90/270 Folding - 펀치 - Y (대기위치 고정 및 자동 선택)
+    // Case C: 90/270 Folding - 펀치 (Punch) - Y -> Hard-locked to 대기위치(고정)
     else if (isFoldingUnit && part === "펀치" && axis === "Y") {
       addOptions(descSelect, ["대기위치(고정)"]);
       descSelect.value = "대기위치(고정)";
@@ -823,11 +849,11 @@
     else if (isFoldingUnit && part === "유닛 전체(얼라인)" && axis === "Y") {
       addOptions(descSelect, ["대기위치", "Align 위치", "폴딩위치"]);
     } 
-    // Case E: Pouch Cutter (Pouch Cutting) - 상도 - Z
+    // Case E: Pouch Cutter (Pouch Cutting) - 상도 (Upper Knife) - Z
     else if (unit === "Pouch Cutter" && part === "상도" && axis === "Z") {
       addOptions(descSelect, ["Cutting 위치", "대기위치"]);
     } 
-    // 디폴트 파라미터 리스트 로드
+    // Default fallback parameter items
     else {
       addOptions(descSelect, ["대기 위치", "상승 위치", "하강 위치", "상승 속도", "하강 속도"]);
     }
@@ -841,6 +867,7 @@
     });
   }
 
+  // Toggle visible form fields segment depending on content selection types
   function toggleSubFields() {
     const contentType = document.getElementById('contentType').value;
     
@@ -862,6 +889,7 @@
     }
   }
 
+  // Clipboard copy handler fallback mechanism for older system browser runtime wrappers
   function fallbackCopyText(text) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
@@ -879,6 +907,7 @@
     document.body.removeChild(textArea);
   }
 
+  // Submit collected inputs to Google Sheet Endpoint via server fetch execution 
   async function submitData() {
     const statusDiv = document.getElementById('status');
     
@@ -977,6 +1006,7 @@
       statusDiv.style.color = "green";
       statusDiv.innerText = "✅ 업로드 및 클립보드 복사 완료!";
 
+      // Form reset execution handling block
       document.getElementById('worker').value = '';
       document.getElementById('requester').value = '';
       document.getElementById('contentType').value = '';
