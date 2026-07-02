@@ -679,7 +679,7 @@
         displayAxis = `<strong style="color:#2c3e50;">${item.g}</strong>`;
         displayPart = `<span style="font-weight:500;">${item.f}</span><br><span style="font-size:11px; color:#64748b;">${item.h}</span>`;
       } else if (item.type.includes('Temperature') || item.type.includes('온도')) {
-        // 이력창 테이블 표시부 보정
+        // 내부 이력 조회 뷰어 테이블 맵 동기화
         displayPart = `<span style="color:#e11d48; font-weight:bold;">Temperature (온도)</span><br><span style="font-size:11px; color:#64748b;">${item.h || ''}</span>`;
       } else if (item.type.includes('Pressure') || item.type.includes('압력')) {
         displayPart = `<span style="color:#9333ea; font-weight:bold;">Pressure (압력)</span>`;
@@ -917,7 +917,7 @@
     if(requester) clipboardText += `• 요청자(Requester): ${requester}\n`;
     clipboardText += `• 변경유형(Type): ${contentType}\n`;
 
-    // 🛠️ 엑셀 매핑 밀림 오류 현상 완벽 조치 파트 (Apps Script 시트 컬럼 1:1 디버깅)
+    // 🛠️ 74, 75번 구글 Apps Script 시트 데이터 전송 파라미터 완전 동기화 매핑
     if (contentType === 'Temperature') {
       const tempSub = document.getElementById('temp-sub-select').value;
       const tempVal = document.getElementById('temp-val').value;
@@ -925,22 +925,24 @@
 
       if(!tempVal || !tempReason || !tempSub) { alert("세부 항목을 모두 입력해주세요."); return; }
 
-      sub1 = "Temperature";                       // E열: 변경내용1 (대분류 형태 고정)
-      sub2 = "";                                  // F열: 변경내용2 (공란 처리하여 축 정보와 매칭 해제)
-      sub3 = tempSub ? `${tempSub}` : "";         // G열: 변경내용3 (HMI 파트 표기란 [상도]/[하도]/[Punch])
-      sub4 = tempVal;                             // H열: 변경 값 (I열 입력 위치에 순수 온도 수치 매핑)
-      sub5 = tempReason;                          // I열: 변경 사유 (J열 입력 위치에 코멘트 스트링 매핑)
+      sub1 = "Temperature"; // E열: 변경내용(대분류)
+      sub2 = "Temperature"; // F열: 변경내용1
+      sub3 = "";            // G열: 변경내용2
+      sub4 = tempSub;       // H열: 변경내용3 -> 여기에 [상도]/[하도]/[Punch]가 위치
+      sub5 = tempVal;       // I열: 변경 값 -> 여기에 설정 온도가 숫자로 위치
+      // tempReason(사유)은 JSON 페이로드 구조상 자동으로 J열에 매핑되어 전송됩니다.
 
       clipboardText += `• 온도(Temp): ${tempVal} [${tempSub}]\n• 변경 사유(Reason): ${tempReason}`;
     } 
     else if (contentType === 'Pressure') {
       sub1 = "Pressure";
-      sub2 = "";
-      sub3 = "Press 압력";
-      sub4 = document.getElementById('press-val').value;
-      sub5 = document.getElementById('press-reason').value;
-      if(!sub4 || !sub5) { alert("세부 항목을 모두 입력해주세요."); return; }
-      clipboardText += `• 압력(Press): ${sub4}\n• 변경 사유(Reason): ${sub5}`;
+      sub2 = "Pressure";
+      sub3 = "";
+      sub4 = "Press 압력";
+      sub5 = document.getElementById('press-val').value;
+      // 사유는 자동으로 마지막 변수로 따라갑니다.
+      if(!sub5) { alert("세부 항목을 모두 입력해주세요."); return; }
+      clipboardText += `• 압력(Press): ${sub5}\n• 변경 사유(Reason): ${document.getElementById('press-reason').value}`;
     }
     else if (contentType === 'Servo Parameter') {
       sub1 = document.getElementById('servo-type').value;
@@ -948,31 +950,38 @@
       const partVal = document.getElementById('servo-part').value;
       let descVal = unit.startsWith('Taping Unit') ? document.getElementById('servo-desc-input').value : document.getElementById('servo-desc-select').value;
       
-      sub4 = document.getElementById('servo-val').value;
-      sub5 = document.getElementById('servo-reason').value;
-      if(!sub1 || !sub2 || !partVal || !descVal || !sub4 || !sub5) { alert("세부 항목을 모두 완성해주세요."); return; }
+      sub4 = `${partVal} - ${descVal}`;
+      sub5 = document.getElementById('servo-val').value;
+      const servoReason = document.getElementById('servo-reason').value;
+      if(!sub1 || !sub2 || !partVal || !descVal || !sub5 || !servoReason) { alert("세부 항목을 모두 완성해주세요."); return; }
 
-      sub3 = `${partVal} - ${descVal}`;
-      clipboardText += `• 구분(Type): ${sub1}\n• 축(Axis): ${sub2}\n• Part 정보: ${sub3}\n• 변경 값(Value): ${sub4}\n• 변경 사유(Reason): ${sub5}`;
+      sub3 = ""; 
+      clipboardText += `• 구분(Type): ${sub1}\n• 축(Axis): ${sub2}\n• Part 정보: ${sub4}\n• 변경 값(Value): ${sub5}\n• 변경 사유(Reason): ${servoReason}`;
     } 
     else if (contentType === 'Normal Parameter') {
       sub1 = document.getElementById('normal-type').value;
-      sub2 = "";
-      sub3 = sub1;
-      sub4 = document.getElementById('normal-val').value;
-      sub5 = document.getElementById('normal-reason').value;
-      if(!sub1 || !sub4 || !sub5) { alert("세부 항목을 모두 입력해주세요."); return; }
-      clipboardText += `• 타입(Type): ${sub1}\n• 변경 값(Value): ${sub4}\n• 변경 사유(Reason): ${sub5}`;
+      sub2 = "Normal Parameter";
+      sub3 = "";
+      sub4 = sub1;
+      sub5 = document.getElementById('normal-val').value;
+      if(!sub1 || !sub5) { alert("세부 항목을 모두 입력해주세요."); return; }
+      clipboardText += `• 타입(Type): ${sub1}\n• 변경 값(Value): ${sub5}\n• 변경 사유(Reason): ${document.getElementById('normal-reason').value}`;
     }
 
     statusDiv.style.color = "orange";
     statusDiv.innerText = "⏳ 데이터 전송 중... (Sending data...)";
 
+    // Apps Script의 뼈대 변수 명칭(sub1~sub5) 그대로 객체 빌드
     const payloads = [];
-    payloads.push({ line: line, unit: unit, worker: combinedWorker, contentType: contentType, sub1: sub1, sub2: sub2, sub3: sub3, sub4: sub4, sub5: sub5 });
+    // 여기서 마지막 사유는 시트의 가장 우측 J열(10번째)에 꽂히도록 Apps Script 구조에 맞춤 연동
+    const finalReason = contentType === 'Temperature' ? document.getElementById('temp-reason').value : 
+                        (contentType === 'Pressure' ? document.getElementById('press-reason').value : 
+                        (contentType === 'Servo Parameter' ? document.getElementById('servo-reason').value : document.getElementById('normal-reason').value));
+
+    payloads.push({ line: line, unit: unit, worker: combinedWorker, contentType: contentType, sub1: sub1, sub2: sub2, sub3: sub3, sub4: sub4, sub5: sub5, sub6: finalReason });
 
     if (isCommonApply && getCounterpartUnit(unit)) {
-      payloads.push({ line: line, unit: getCounterpartUnit(unit), worker: combinedWorker, contentType: contentType, sub1: sub1, sub2: sub2, sub3: sub3, sub4: sub4, sub5: sub5 });
+      payloads.push({ line: line, unit: getCounterpartUnit(unit), worker: combinedWorker, contentType: contentType, sub1: sub1, sub2: sub2, sub3: sub3, sub4: sub4, sub5: sub5, sub6: finalReason });
     }
 
     if (navigator.clipboard && window.isSecureContext) {
