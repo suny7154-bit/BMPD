@@ -972,17 +972,81 @@
     document.body.removeChild(textArea);
   }
 
-  async function loadHistoryFromServer() {
+async function loadHistoryFromServer() {
     const tbody = document.getElementById('history-tbody');
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#3498db; font-weight:bold;">⏳ 데이터를 불러오는 중입니다...</td></tr>';
+    
     try {
       const response = await fetch(GOOGLE_SCRIPT_URL);
       const data = await response.json();
+
+      if (data.error) {
+        alert("서버 오류: " + data.error);
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#e74c3c;">❌ 데이터를 가져오지 못했습니다.</td></tr>';
+        return;
+      }
+
       cachedHistoryData = data;
-      renderHistoryTable();
+      renderHistoryTable(); // 조회된 데이터를 화면에 테이블로 출력
     } catch(e) {
+      console.error(e);
       tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#e74c3c;">❌ 데이터를 가져오지 못했습니다.</td></tr>';
     }
+  }
+
+  // 💡 missing 되어있던 테이블 출력 및 필터링 함수 추가
+  function renderHistoryTable() {
+    const tbody = document.getElementById('history-tbody');
+    const filterLine = document.getElementById('filter-line').value;
+    const filterUnit = document.getElementById('filter-unit').value;
+    const filterAxis = document.getElementById('filter-axis').value;
+    const filterPart = document.getElementById('filter-part').value.toLowerCase().trim();
+
+    if (!cachedHistoryData || cachedHistoryData.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#7f8c8d;">조회된 데이터가 없습니다.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = '';
+
+    // 기존 Apps Script(doPost)의 A~J열 매핑 적용
+    const filtered = cachedHistoryData.filter(row => {
+      const line = String(row[1] || '');               // B열: 라인
+      const unit = String(row[2] || '');               // C열: 유닛
+      const axis = String(row[6] || '');               // G열: 축
+      const part = String(row[7] || '').toLowerCase(); // H열: 파트 정보
+
+      if (filterLine && line !== filterLine) return false;
+      if (filterUnit && unit !== filterUnit) return false;
+      if (filterAxis && axis !== filterAxis) return false;
+      if (filterPart && !part.includes(filterPart)) return false;
+
+      return true;
+    });
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:20px; color:#7f8c8d;">조건에 맞는 데이터가 없습니다.</td></tr>';
+      return;
+    }
+
+    // 화면 UI 테이블(9개 컬럼)에 맞춰 시트 데이터 인덱스 매핑
+    filtered.forEach(row => {
+      const tr = document.createElement('tr');
+      const typeDisplay = row[5] ? `${row[4]} (${row[5]})` : row[4];
+
+      tr.innerHTML = `
+        <td>${row[1] || ''}</td>  <!-- 라인 (B열) -->
+        <td>${row[0] || ''}</td>  <!-- 변경일자 (A열) -->
+        <td>${row[2] || ''}</td>  <!-- 유닛 (C열) -->
+        <td>${row[3] || ''}</td>  <!-- 변경자 (D열) -->
+        <td>${typeDisplay}</td>   <!-- 유형 (E열 + F열) -->
+        <td>${row[6] || ''}</td>  <!-- 축 (G열) -->
+        <td>${row[7] || ''}</td>  <!-- 파트 정보 (H열) -->
+        <td>${row[8] || ''}</td>  <!-- 변경 값 (I열) -->
+        <td>${row[9] || ''}</td>  <!-- 변경 사유 (J열) -->
+      `;
+      tbody.appendChild(tr);
+    });
   }
 </script>
 </body>
